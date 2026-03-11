@@ -1,0 +1,54 @@
+{
+    "category": "Cross-Site Scripting (XSS)",
+    "base_score": 70,
+    "rules": [
+        {
+            "id": "xss-001",
+            "name": "Script tag injection",
+            "pattern": "<\\s*script[\\s\\S]*?>",
+            "score": 90
+        },
+        {
+            "id": "xss-002",
+            "name": "javascript: URI",
+            "pattern": "javascript\\s*:",
+            "score": 85
+        },
+        {
+            "id": "xss-003",
+            "name": "Inline event handler",
+            "pattern": "\\bon\\w+\\s*=\\s*[\"']",
+            "score": 80
+        },
+        {
+            "id": "xss-004",
+            "name": "eval() call",
+            "pattern": "\\beval\\s*\\(",
+            "score": 85
+        },
+        {
+            "id": "xss-005",
+            "name": "document.cookie access",
+            "pattern": "document\\s*\\.\\s*(cookie|write|location)",
+            "score": 80
+        },
+        {
+            "id": "xss-006",
+            "name": "Alert/confirm payload",
+            "pattern": "\\b(alert|confirm|prompt)\\s*\\(",
+            "score": 70
+        },
+        {
+            "id": "xss-007",
+            "name": "SVG onload vector",
+            "pattern": "<\\s*svg[^>]+onload",
+            "score": 85
+        },
+        {
+            "id": "xss-008",
+            "name": "img src javascript",
+            "pattern": "<\\s*img[^>]+src\\s*=\\s*['\"]?\\s*javascript:",
+            "score": 90
+        }
+    ]
+}

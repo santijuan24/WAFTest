@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\xampp\htdocs\waf\WAFProyecto\waf_project\test_import.py", line 5, in <module>
+    import admin_api.routes.config
+  File "C:\xampp\htdocs\waf\WAFProyecto\waf_project\admin_api\routes\config.py", line 16, in <module>
+    from models.system_config import SystemConfig
+  File "C:\xampp\htdocs\waf\WAFProyecto\waf_project\admin_api\routes\..\..\..\models\__init__.py", line 3, in <module>
+    from .request_log import RequestLog
+  File "C:\xampp\htdocs\waf\WAFProyecto\waf_project\admin_api\routes\..\..\..\models\request_log.py", line 1, in <module>
+    from database import db
+ImportError: cannot import name 'db' from 'database' (C:\xampp\htdocs\waf\WAFProyecto\waf_project\database\__init__.py)

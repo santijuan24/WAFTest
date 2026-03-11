@@ -1,0 +1,54 @@
+{
+    "category": "Local File Inclusion (LFI) / Path Traversal",
+    "base_score": 72,
+    "rules": [
+        {
+            "id": "lfi-001",
+            "name": "Unix path traversal",
+            "pattern": "(\\.\\./){2,}",
+            "score": 80
+        },
+        {
+            "id": "lfi-002",
+            "name": "Windows path traversal",
+            "pattern": "(\\.\\.\\\\/){1,}",
+            "score": 80
+        },
+        {
+            "id": "lfi-003",
+            "name": "URL-encoded traversal",
+            "pattern": "(%2e%2e%2f|%2e%2e/|\\.%2f|%2e\\.)",
+            "score": 85
+        },
+        {
+            "id": "lfi-004",
+            "name": "/etc/passwd access",
+            "pattern": "/etc/passwd",
+            "score": 95
+        },
+        {
+            "id": "lfi-005",
+            "name": "/etc/shadow access",
+            "pattern": "/etc/shadow",
+            "score": 95
+        },
+        {
+            "id": "lfi-006",
+            "name": "Windows system directory",
+            "pattern": "\\\\windows\\\\system32",
+            "score": 90
+        },
+        {
+            "id": "lfi-007",
+            "name": "PHP wrapper",
+            "pattern": "php://(filter|input|data)",
+            "score": 85
+        },
+        {
+            "id": "lfi-008",
+            "name": "Null byte injection",
+            "pattern": "%00",
+            "score": 75
+        }
+    ]
+}

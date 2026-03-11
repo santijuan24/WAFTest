@@ -1,0 +1,54 @@
+{
+  "category": "SQL Injection",
+  "base_score": 75,
+  "rules": [
+    {
+      "id": "sqli-001",
+      "name": "UNION SELECT",
+      "pattern": "\\bUNION\\b[\\s\\S]*?\\bSELECT\\b",
+      "score": 90
+    },
+    {
+      "id": "sqli-002",
+      "name": "Classic OR 1=1",
+      "pattern": "\\bOR\\b\\s+['\"]?[a-zA-Z0-9_]+['\"]?\\s*=\\s*['\"]?[a-zA-Z0-9_]+['\"]?",
+      "score": 85
+    },
+    {
+      "id": "sqli-003",
+      "name": "SQL Comment evasion",
+      "pattern": "(--|#|/\\*[\\s\\S]*?\\*/)",
+      "score": 60
+    },
+    {
+      "id": "sqli-004",
+      "name": "Stacked queries",
+      "pattern": ";\\s*(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\\b",
+      "score": 90
+    },
+    {
+      "id": "sqli-005",
+      "name": "DROP TABLE",
+      "pattern": "\\bDROP\\b[\\s]+\\bTABLE\\b",
+      "score": 95
+    },
+    {
+      "id": "sqli-006",
+      "name": "Boolean blind – AND",
+      "pattern": "\\bAND\\b\\s+['\"]?\\d+['\"]?\\s*=\\s*['\"]?\\d+['\"]?",
+      "score": 80
+    },
+    {
+      "id": "sqli-007",
+      "name": "Sleep/benchmark (time-based)",
+      "pattern": "\\b(SLEEP|BENCHMARK|WAITFOR\\s+DELAY)\\s*\\(",
+      "score": 95
+    },
+    {
+      "id": "sqli-008",
+      "name": "Single quote injection attempt",
+      "pattern": "['\"]\\s*(--|#|/\\*|\\bOR\\b|\\bAND\\b|\\bUNION\\b|\\bSELECT\\b)",
+      "score": 85
+    }
+  ]
+}

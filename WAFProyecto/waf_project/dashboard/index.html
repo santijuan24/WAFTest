@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAF SIEM Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-panel: #18181b;
+      --border: #27272a;
+      --border-hover: #3f3f46;
+      --text: #e4e4e7;
+      --text-muted: #a1a1aa;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.1);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 0.9rem;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .waf-badge {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-on {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+
+    .badge-off {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn:hover {
+      background: var(--border);
+    }
+
+    .toggle-btn.enabling {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .toggle-btn.enabling:hover {
+      background: var(--success-bg);
+    }
+
+    .toggle-btn.disabling {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .toggle-btn.disabling:hover {
+      background: var(--danger-bg);
+    }
+
+    /* ── Layout ── */
+    nav {
+      width: 220px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 57px;
+      bottom: 0;
+      padding: 24px 0;
+      overflow-y: auto;
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 24px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+
+    nav a:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    nav a.active {
+      color: var(--primary);
+      background: rgba(59, 130, 246, 0.05);
+      border-left-color: var(--primary);
+    }
+
+    .alert-badge {
+      background: var(--danger);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 12px;
+      margin-left: auto;
+    }
+
+    main {
+      margin-left: 220px;
+      padding: 32px;
+      padding-top: 89px;
+    }
+
+    /* ── Sections ── */
+    .section {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* ── KPI Cards ── */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.2s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .kpi:hover {
+      border-color: var(--border-hover);
+    }
+
+    .kpi .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .kpi .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .kpi.danger .value {
+      color: var(--danger);
+    }
+
+    .kpi.success .value {
+      color: var(--success);
+    }
+
+    .kpi.warn .value {
+      color: var(--warning);
+    }
+
+    .kpi.info .value {
+      color: var(--primary);
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    canvas {
+      max-height: 280px;
+    }
+
+    /* ── Tables ── */
+    .table-wrap {
+      overflow-x: auto;
+      margin: -24px;
+      margin-top: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+      padding: 12px 24px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-block {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .badge-allow {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .badge-warn {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .badge-critical {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .badge-warning {
+      background: var(--warning);
+      color: #fff;
+    }
+
+    .badge-info {
+      background: var(--primary-bg);
+      color: var(--primary);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── Filters ── */
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filters input,
+    .filters select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      transition: border-color 0.2s;
+    }
+
+    .filters input:focus,
+    .filters select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--border);
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: var(--bg);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-success {
+      background: var(--bg);
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .btn-success:hover {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-primary {
+      border-color: transparent;
+      color: #fff;
+      background: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    /* ── Config ── */
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 16px;
+      margin: -24px;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .config-item {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .config-item .info {
+      flex: 1;
+    }
+
+    .config-item .info .key {
+      font-size: 0.85rem;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .config-item .info .desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .config-item input[type="text"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      width: 90px;
+      text-align: center;
+    }
+
+    .config-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: var(--bg-panel);
+      color: var(--text);
+      padding: 14px 24px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: none;
+      z-index: 999;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .toast.error {
+      border-bottom: 3px solid var(--danger);
+    }
+
+    .toast.success {
+      border-bottom: 3px solid var(--success);
+    }
+
+    .empty {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 32px;
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    .pagination button {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .pagination button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .pagination button:not(:disabled):hover {
+      background: var(--border);
+    }
+
+    .pagination span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: 0 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1>WAF SIEM Dashboard</h1>
+    <span id="wafBadge" class="waf-badge badge-on">Estado WAF: ACTIVO</span>
+    <button id="toggleBtn" class="toggle-btn disabling" onclick="toggleWAF()">Desactivar WAF</button>
+    <span style="font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums;"
+      id="refreshInfo">Auto-recarga: 5s</span>
+  </header>
+
+  <!-- Sidebar Nav -->
+  <nav>
+    <a href="#" class="active" onclick="showSection('overview',this)" id="navOverview">
+      Resumen
+    </a>
+    <a href="#" onclick="showSection('logs',this)" id="navLogs">
+      Tráfico
+    </a>
+    <a href="#" onclick="showSection('blocked',this)" id="navBlocked">
+      IPs Bloqueadas
+    </a>
+    <a href="#" onclick="showSection('alerts',this)" id="navAlerts">
+      Alertas
+      <span class="alert-badge" id="alertBadge" style="display:none">0</span>
+    </a>
+    <a href="#" onclick="showSection('config',this)" id="navConfig">
+      Configuración
+    </a>
+  </nav>
+
+  <!-- Main -->
+  <main>
+
+    <!-- OVERVIEW -->
+    <div class="section active" id="section-overview">
+      <h2>Resumen del Sistema</h2>
+      <div class="kpis">
+        <div class="kpi info">
+          <div class="label">Total Peticiones</div>
+          <div class="value" id="kTotal">–</div>
+        </div>
+        <div class="kpi danger">
+          <div class="label">Bloqueados</div>
+          <div class="value" id="kBlocked">–</div>
+        </div>
+        <div class="kpi success">
+          <div class="label">Permitidos</div>
+          <div class="value" id="kAllowed">–</div>
+        </div>
+        <div class="kpi warn">
+          <div class="label">Score Riesgo Prom.</div>
+          <div class="value" id="kScore">–</div>
+        </div>
+        <div class="kpi danger">
+          <div class="label">Lista Negra Activa</div>
+          <div class="value" id="kIPs">–</div>
+        </div>
+        <div class="kpi warn">
+          <div class="label">Alertas sin leer</div>
+          <div class="value" id="kAlerts">–</div>
+        </div>
+      </div>
+      <div class="charts-row">
+        <div class="card">
+          <h3>Amenazas por Categoría</h3>
+          <canvas id="chartTypes"></canvas>
+        </div>
+        <div class="card">
+          <h3>Acción del Interceptor</h3>
+          <canvas id="chartAction"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Detecciones Críticas Recientes</h3>
+        <div class="table-wrap">
+          <table id="recentAlertsTable">
+            <thead>
+              <tr>
+                <th>Nivel</th>
+                <th>Detalle del Evento</th>
+                <th>IP Origen</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="section" id="section-logs">
+      <h2>Logs de Tráfico Web</h2>
+      <div class="filters">
+        <input type="text" id="filterIP" placeholder="Filtrar por IPv4...">
+        <select id="filterAction">
+          <option value="">Todas las acciones</option>
+          <option value="allow">Permitidos</option>
+          <option value="block">Bloqueados</option>
+        </select>
+        <button class="btn" onclick="loadLogs()">Filtrar</button>
+        <button class="btn btn-danger" onclick="clearLogs()">Purgar Registros</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="logsTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Timestamp</th>
+                <th>IP Origen</th>
+                <th>Método</th>
+                <th>Ruta</th>
+                <th>Puntuación</th>
+                <th>Acción</th>
+                <th>Coincidencia / Regla</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button onclick="logsPage(-1)">Anterior</button>
+          <span id="logsPageInfo">Página 1</span>
+          <button onclick="logsPage(1)">Siguiente</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOCKED IPs -->
+    <div class="section" id="section-blocked">
+      <h2>Matriz de Control de Acceso (Lista Negra)</h2>
+      <div class="filters">
+        <input type="text" id="newBlockIP" placeholder="Dirección IPv4...">
+        <input type="text" id="newBlockReason" placeholder="Motivo del bloqueo...">
+        <button class="btn btn-danger" onclick="blockIP()">Añadir a Lista Negra</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="blockedTable">
+            <thead>
+              <tr>
+                <th>IP Origen</th>
+                <th>Razón</th>
+                <th>Aplicado El</th>
+                <th>Expiración</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="section" id="section-alerts">
+      <h2>Avisos de Seguridad y Alertas</h2>
+      <div class="filters">
+        <label
+          style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--text-muted); cursor: pointer;">
+          <input type="checkbox" id="alertUnread" onchange="loadAlerts()"> Solo no leídas
+        </label>
+        <div style="margin-left:auto; display:flex; gap:12px;">
+          <button class="btn" onclick="markAllRead()">Marcar Todo Leído</button>
+          <button class="btn btn-danger" onclick="clearAlerts()">Purgar Alertas</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="alertsTable">
+            <thead>
+              <tr>
+                <th>Severidad</th>
+                <th>Detalle del Evento</th>
+                <th>IP Origen</th>
+                <th>Timestamp</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="section" id="section-config">
+      <h2>Configuración del Motor WAF</h2>
+      <div class="card">
+        <div class="config-grid" id="configGrid"></div>
+      </div>
+      <div style="margin-top:24px; display: flex; justify-content: flex-end;">
+        <button class="btn btn-primary" onclick="saveConfig()">Aplicar Cambios</button>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // use relative path so dashboard works regardless of host/port
+    const API = '/api';
+    let _wafEnabled = true;
+    let _logsOffset = 0;
+    const LOGS_LIMIT = 50;
+
+    // ── Charts ──────────────────────────────────────────────────────────────
+    let chartTypes = null, chartAction = null;
+
+    function initCharts() {
+      const opts = {
+        plugins: { legend: { labels: { color: '#a1a1aa', boxWidth: 12, padding: 20 } } },
+        maintainAspectRatio: false
+      };
+      chartTypes = new Chart(document.getElementById('chartTypes'), {
+        type: 'doughnut',
+        data: { labels: [], datasets: [{ data: [], backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'], borderWidth: 0 }] },
+        options: { ...opts, cutout: '65%', layout: { padding: 10 } }
+      });
+      chartAction = new Chart(document.getElementById('chartAction'), {
+        type: 'bar',
+        data: { labels: ['Tráfico Permitido', 'Amenazas Bloqueadas'], datasets: [{ data: [0, 0], backgroundColor: ['#10b981', '#ef4444'], borderRadius: 4, barThickness: 40 }] },
+        options: { ...opts, scales: { x: { ticks: { color: '#a1a1aa' }, grid: { display: false } }, y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a', borderDash: [4, 4] } } }, plugins: { legend: { display: false } } }
+      });
+    }
+
+    // ── Navigation ──────────────────────────────────────────────────────────
+    function showSection(id, el) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+      document.getElementById('section-' + id).classList.add('active');
+      if (el) el.classList.add('active');
+      if (id === 'logs') loadLogs();
+      if (id === 'blocked') loadBlocked();
+      if (id === 'alerts') loadAlerts();
+      if (id === 'config') loadConfig();
+    }
+
+    // ── Toast ───────────────────────────────────────────────────────────────
+    function toast(msg, type = 'info') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    // ── WAF Toggle ──────────────────────────────────────────────────────────
+    async function toggleWAF() {
+      const newVal = !_wafEnabled;
+      try {
+        const response = await fetch(`${API}/config/waf_enabled`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: newVal ? 'true' : 'false' })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        _wafEnabled = newVal;
+        updateWAFState();
+        toast(`Motor WAF ha sido ${newVal ? 'activado' : 'desactivado'}`, newVal ? 'success' : 'error');
+      } catch (e) { toast('Error conectando a la API: ' + e.message, 'error'); }
+    }
+
+    function updateWAFState() {
+      const badge = document.getElementById('wafBadge');
+      const btn = document.getElementById('toggleBtn');
+      if (_wafEnabled) {
+        badge.textContent = 'Estado WAF: ACTIVO'; badge.className = 'waf-badge badge-on';
+        btn.textContent = 'Apagar Interceptor'; btn.className = 'toggle-btn disabling';
+      } else {
+        badge.textContent = 'Estado WAF: APAGADO'; badge.className = 'waf-badge badge-off';
+        btn.textContent = 'Encender Interceptor'; btn.className = 'toggle-btn enabling';
+      }
+    }
+
+    // ── Stats / Overview ────────────────────────────────────────────────────
+    async function loadStats() {
+      try {
+        const r = await fetch(`${API}/stats/`);
+        const d = await r.json();
+        document.getElementById('kTotal').textContent = d.total_requests ?? 0;
+        document.getElementById('kBlocked').textContent = d.blocked_requests ?? 0;
+        document.getElementById('kAllowed').textContent = d.allowed_requests ?? 0;
+        document.getElementById('kScore').textContent = (d.average_risk_score ?? 0).toFixed(1);
+        document.getElementById('kIPs').textContent = d.active_blocked_ips ?? 0;
+        document.getElementById('kAlerts').textContent = d.unread_alerts ?? 0;
+
+        // alert badge in nav
+        const unread = d.unread_alerts ?? 0;
+        const ab = document.getElementById('alertBadge');
+        ab.textContent = unread; ab.style.display = unread > 0 ? 'inline' : 'none';
+
+        // charts
+        const types = d.attacks_by_type ?? {};
+        chartTypes.data.labels = Object.keys(types);
+        chartTypes.data.datasets[0].data = Object.values(types);
+        chartTypes.update('none');
+
+        chartAction.data.datasets[0].data = [d.allowed_requests ?? 0, d.blocked_requests ?? 0];
+        chartAction.update('none');
+      } catch (e) { console.warn('Stats error', e); }
+    }
+
+    // ── Logs ────────────────────────────────────────────────────────────────
+    async function loadLogs() {
+      const ip = document.getElementById('filterIP').value.trim();
+      const action = document.getElementById('filterAction').value;
+      let url = `${API}/logs/?limit=${LOGS_LIMIT}&skip=${_logsOffset}`;
+      if (ip) url += `&ip=${encodeURIComponent(ip)}`;
+      if (action) url += `&action=${action}`;
+      try {
+        const r = await fetch(url);
+        const rows = await r.json();
+        const tbody = document.querySelector('#logsTable tbody');
+        tbody.innerHTML = rows.length ? rows.map(l => `
+      <tr>
+        <td><span style="color:var(--text-muted)">#${l.id}</span></td>
+        <td style="font-size:0.8rem;color:var(--text-muted);font-variant-numeric:tabular-nums;">${l.timestamp?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
+        <td><code>${l.ip_address}</code></td>
+        <td style="font-size:0.8rem;font-weight:600;">${l.method}</td>
+        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.85rem;" title="${l.path}">${l.path}</td>
+        <td><span style="color:${scoreColor(l.risk_score)};font-weight:700;">${(l.risk_score ?? 0).toFixed(0)}</span></td>
+        <td><span class="badge badge-${l.action}">${l.action}</span></td>
+        <td style="font-size:0.8rem;color:var(--warning);">${l.attack_type ?? '–'}</td>
+      </tr>`).join('') : '<tr><td colspan="8" class="empty">No existen registros para estos criterios</td></tr>';
+        document.getElementById('logsPageInfo').textContent = `Página ${Math.floor(_logsOffset / LOGS_LIMIT) + 1}`;
+      } catch (e) { toast('Error cargando registros', 'error'); }
+    }
+
+    function scoreColor(s) { return s >= 70 ? 'var(--danger)' : s >= 40 ? 'var(--warning)' : 'var(--success)'; }
+
+    function logsPage(dir) {
+      _logsOffset = Math.max(0, _logsOffset + dir * LOGS_LIMIT);
+      loadLogs();
+    }
+
+    async function clearLogs() {
+      if (!confirm('¿Purgar todo el historial de tráfico? Esta acción es irreversible.')) return;
+      try {
+        const r = await fetch(`${API}/logs/clear`, { method: 'DELETE' });
+        const d = await r.json();
+        toast(`${d.deleted ?? 0} registros purgados`, 'success');
+        _logsOffset = 0; loadLogs(); loadStats();
+      } catch (e) { toast('Error purgando registros', 'error'); }
+    }
+
+    // ── Blocked IPs ─────────────────────────────────────────────────────────
+    async function loadBlocked() {
+      try {
+        const r = await fetch(`${API}/blocked-ips/`);
+        const rows = await r.json();
+        const tbody = document.querySelector('#blockedTable tbody');
+        tbody.innerHTML = rows.length ? rows.map(b => `
+      <tr>
+        <td><code>${b.ip_address}</code></td>
+        <td style="font-size:0.85rem;">${b.reason ?? '–'}</td>
+        <td style="font-size:0.8rem;color:var(--text-muted);">${b.blocked_at?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
+        <td style="font-size:0.8rem;color:var(--text-muted);">${b.expires_at ?? 'Permanente'}</td>
+        <td><button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.75rem;" onclick="unblockIP('${b.ip_address}')">Remover Bloqueo</button></td>
+      </tr>`).join('') : '<tr><td colspan="5" class="empty">La lista negra está vacía en este momento</td></tr>';
+      } catch (e) { toast('Error leyendo listas de control', 'error'); }
+    }
+
+    async function blockIP() {
+      const ip = document.getElementById('newBlockIP').value.trim();
+      const reason = document.getElementById('newBlockReason').value.trim();
+      if (!ip) { toast('Favor de ingresar una IP válida', 'error'); return; }
+      try {
+        await fetch(`${API}/blocked-ips/`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ip_address: ip, reason: reason || 'Bloqueo Manual' })
+        });
+        document.getElementById('newBlockIP').value = '';
+        document.getElementById('newBlockReason').value = '';
+        toast(`Dirección IP ${ip} confinada`, 'success'); loadBlocked(); loadStats();
+      } catch (e) { toast('Error en el confinamiento de IP', 'error'); }
+    }
+
+    async function unblockIP(ip) {
+      try {
+        await fetch(`${API}/blocked-ips/${encodeURIComponent(ip)}`, { method: 'DELETE' });
+        toast(`Acceso restaurado para IP ${ip}`, 'success'); loadBlocked(); loadStats();
+      } catch (e) { toast('Error restaurando acceso', 'error'); }
+    }
+
+    // ── Alerts ──────────────────────────────────────────────────────────────
+    async function loadAlerts() {
+      const unreadOnly = document.getElementById('alertUnread').checked;
+      try {
+        const r = await fetch(`${API}/alerts/?unread_only=${unreadOnly}&limit=100`);
+        const rows = await r.json();
+        const tbody = document.querySelector('#alertsTable tbody');
+        tbody.innerHTML = rows.length ? rows.map(a => `
+      <tr style="${!a.is_read ? 'background:rgba(255,255,255,0.03);' : ''}">
+        <td><span class="badge badge-${a.level}">${a.level}</span></td>
+        <td style="font-size:0.85rem; font-weight: ${!a.is_read ? '600' : '400'}; color: ${!a.is_read ? '#fff' : 'var(--text-muted)'};">${a.message}</td>
+        <td><code>${a.source_ip ?? '–'}</code></td>
+        <td style="font-size:0.8rem;color:var(--text-muted);">${a.timestamp?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
+        <td style="text-align:center;">${a.is_read ? '<span style="color:var(--success)">✔</span>' : '<span style="color:var(--primary);font-size:1.2rem;">●</span>'}</td>
+        <td>${!a.is_read ? `<button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.75rem;" onclick="markRead(${a.id})">Entendido</button>` : ''}</td>
+      </tr>`).join('') : '<tr><td colspan="6" class="empty">El sistema no reporta alertas de seguridad</td></tr>';
+
+        // recent alerts on overview
+        const tbody2 = document.querySelector('#recentAlertsTable tbody');
+        const critical = rows.filter(a => a.level === 'critical').slice(0, 10);
+        tbody2.innerHTML = critical.length ? critical.map(a => `
+      <tr>
+        <td><span class="badge badge-${a.level}">${a.level}</span></td>
+        <td style="font-size:0.85rem;">${a.message}</td>
+        <td><code>${a.source_ip ?? '–'}</code></td>
+        <td style="font-size:0.8rem;color:var(--text-muted);">${a.timestamp?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
+      </tr>`).join('') : '<tr><td colspan="4" class="empty">No ha habido detecciones críticas</td></tr>';
+      } catch (e) { toast('Error descargando las alertas', 'error'); }
+    }
+
+    async function markRead(id) {
+      await fetch(`${API}/alerts/${id}/read`, { method: 'POST' });
+      loadAlerts(); loadStats();
+    }
+
+    async function markAllRead() {
+      await fetch(`${API}/alerts/read-all`, { method: 'POST' });
+      toast('Alertas marcadas como leídas', 'success'); loadAlerts(); loadStats();
+    }
+
+    async function clearAlerts() {
+      if (!confirm('¿Eliminar por completo el historial de notificaciones?')) return;
+      await fetch(`${API}/alerts/clear`, { method: 'DELETE' });
+      toast('Historial de alertas vaciado', 'success'); loadAlerts(); loadStats();
+    }
+
+    // ── Config ──────────────────────────────────────────────────────────────
+    let _configSnapshot = {};
+
+    async function loadConfig() {
+      try {
+        const r = await fetch(`${API}/config/`);
+        const rows = await r.json();
+        _configSnapshot = {};
+        rows.forEach(c => _configSnapshot[c.key] = c);
+
+        // sync WAF state from config
+        const wafCfg = rows.find(c => c.key === 'waf_enabled');
+        if (wafCfg) { _wafEnabled = wafCfg.value === 'true'; updateWAFState(); }
+
+        const labelMap = {
+          waf_enabled: 'Interruptor Maestro WAF',
+          score_block_threshold: 'Umbral de Tolerancia a Bloqueo',
+          score_warn_threshold: 'Sensibilidad de Alerta Temprana',
+          rules_sqli_enabled: 'Motor de Detección SQLi',
+          rules_xss_enabled: 'Malla de Inyección XSS',
+          rules_lfi_enabled: 'Filtro Transversal (LFI)',
+          auto_block_on_attack: 'Castigo Automático IP Local',
+        };
+
+        const grid = document.getElementById('configGrid');
+        grid.innerHTML = rows.map(c => {
+          const isBool = c.value === 'true' || c.value === 'false';
+          const isNum = !isBool && !isNaN(Number(c.value));
+          let input;
+          if (isBool) {
+            input = `<input type="checkbox" id="cfg_${c.key}" ${c.value === 'true' ? 'checked' : ''}>`;
+          } else {
+            input = `<input type="text" id="cfg_${c.key}" value="${c.value}">`;
+          }
+          const label = labelMap[c.key] || c.key;
+          return `<div class="config-item">
+        <div class="info">
+          <div class="key">${label}</div>
+          <div class="desc">${c.description ?? ''}</div>
+        </div>
+        ${input}
+      </div>`;
+        }).join('');
+      } catch (e) { toast('Error refrescando configuraciones', 'error'); }
+    }
+
+    async function saveConfig() {
+      const keys = Object.keys(_configSnapshot);
+      let saved = 0;
+      for (const key of keys) {
+        const el = document.getElementById('cfg_' + key);
+        if (!el) continue;
+        const val = el.type === 'checkbox' ? (el.checked ? 'true' : 'false') : el.value;
+        const orig = _configSnapshot[key];
+        try {
+          const response = await fetch(`${API}/config/${key}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ value: val, description: orig.description })
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          saved++;
+        } catch (e) {
+          toast(`Error guardando ${key}: ${e.message}`, 'error');
+          return;
+        }
+      }
+      toast(`${saved} configuraciones guardadas exitosamente`, 'success');
+      loadConfig();
+    }
+
+    // ── Auto-refresh ─────────────────────────────────────────────────────────
+    function refreshAll() {
+      loadStats();
+      loadAlerts();
+    }
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    initCharts();
+    refreshAll();
+    setInterval(refreshAll, 5000);
+  </script>
+</body>
+
+</html>
