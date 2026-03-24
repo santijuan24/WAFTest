@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa de Amenazas – WAF SIEM</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-panel: #18181b;
+      --border: #27272a;
+      --border-hover: #3f3f46;
+      --text: #e4e4e7;
+      --text-muted: #a1a1aa;
+      --primary: #3b82f6;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 0.9rem;
+    }
+
+    header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.05rem;
+      font-weight: 650;
+      flex: 1;
+    }
+
+    header a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    header a:hover {
+      color: var(--text);
+      border-color: var(--border-hover);
+    }
+
+    .wrap {
+      padding-top: 70px;
+      padding-left: 24px;
+      padding-right: 24px;
+      padding-bottom: 24px;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 980px) {
+      .wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #map {
+      height: calc(100vh - 110px);
+      min-height: 520px;
+      width: 100%;
+    }
+
+    .side {
+      padding: 16px;
+    }
+
+    .muted {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      font-variant-numeric: tabular-nums;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .status.ok {
+      border-color: rgba(16, 185, 129, 0.35);
+      color: rgba(16, 185, 129, 0.95);
+    }
+
+    .status.bad {
+      border-color: rgba(239, 68, 68, 0.35);
+      color: rgba(239, 68, 68, 0.95);
+    }
+
+    .list {
+      margin-top: 14px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    .list h2 {
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+    }
+
+    .top {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .row .ip {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+
+    .row .count {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      color: var(--warning);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Mapa de Amenazas (Tiempo Real)</h1>
+    <a href="/dashboard/index.html">Volver al Dashboard</a>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <div id="map"></div>
+    </div>
+
+    <div class="card side">
+      <div class="muted">
+        Escucha eventos <code>new_attack</code> del WAF y coloca marcadores según GeoIP.
+        Si la base <code>GeoLite2-City.mmdb</code> no está instalada, el mapa seguirá cargando pero no verá ubicaciones.
+      </div>
+      <div id="status" class="status">Conectando al stream…</div>
+
+      <div class="list">
+        <h2>Top Attackers</h2>
+        <div class="top" id="topList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Require login token (same as dashboard)
+    const token = localStorage.getItem('waf_token');
+    if (!token) window.location.href = '/dashboard/login.html';
+
+    // Map
+    const map = L.map('map', { zoomControl: true }).setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Socket.IO
+    const WAF_SOCKET_ORIGIN = 'http://localhost:8000';
+    const statusEl = document.getElementById('status');
+
+    function setStatus(text, cls) {
+      statusEl.textContent = text;
+      statusEl.className = 'status ' + (cls || '');
+    }
+
+    const attackers = new Map(); // ip -> count
+
+    function renderTop() {
+      const el = document.getElementById('topList');
+      const items = Array.from(attackers.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+      el.innerHTML = items.length ? items.map(([ip, count]) => `
+        <div class="row">
+          <div class="ip">${ip}</div>
+          <div class="count">${count}</div>
+        </div>
+      `).join('') : '<div class="muted" style="padding: 10px 0;">Sin eventos aún.</div>';
+    }
+
+    const socket = io(WAF_SOCKET_ORIGIN, {
+      // fastapi-socketio mounts under /ws by default
+      path: '/ws/socket.io',
+      transports: ['websocket', 'polling'],
+      withCredentials: false
+    });
+
+    socket.on('connect', () => setStatus('Conectado. Esperando ataques…', 'ok'));
+    socket.on('connect_error', (e) => setStatus('Error conectando al stream (Socket.IO): ' + (e?.message || e), 'bad'));
+    socket.on('disconnect', (reason) => setStatus('Desconectado: ' + reason, 'bad'));
+
+    socket.on('new_attack', (evt) => {
+      const ip = evt.ip || 'unknown';
+      attackers.set(ip, (attackers.get(ip) || 0) + 1);
+      renderTop();
+
+      // If we don't have coordinates (common on localhost / private IPs), still keep the event in Top Attackers.
+      if (!evt || typeof evt.lat !== 'number' || typeof evt.lon !== 'number') {
+        const msg = evt && evt.geoip_found === false
+          ? `Evento recibido (${ip}) pero sin GeoIP (instala GeoLite2-City.mmdb o usa X-Forwarded-For con IP pública).`
+          : `Evento recibido (${ip}) pero sin coordenadas.`;
+        setStatus(msg, 'bad');
+        return;
+      }
+      setStatus(`Conectado. Último evento: ${ip} @ ${evt.lat.toFixed(2)}, ${evt.lon.toFixed(2)}`, 'ok');
+
+      const labelParts = [
+        `<b>${evt.attack_type || 'Amenaza'}</b>`,
+        `IP: <code>${ip}</code>`,
+        evt.geoip_source ? `GeoIP: ${evt.geoip_source}` : null,
+        evt.country ? `País: ${evt.country}` : null,
+        evt.city ? `Ciudad: ${evt.city}` : null,
+        (evt.score !== undefined && evt.score !== null) ? `Score: ${evt.score}` : null,
+        evt.action ? `Acción: ${evt.action}` : null,
+        evt.timestamp ? `Hora: ${evt.timestamp}` : null,
+      ].filter(Boolean);
+
+      const marker = L.circleMarker([evt.lat, evt.lon], {
+        radius: 7,
+        color: '#ef4444',
+        weight: 2,
+        fillColor: '#ef4444',
+        fillOpacity: 0.35
+      }).addTo(map);
+      marker.bindPopup(labelParts.join('<br/>'));
+    });
+
+    renderTop();
+  </script>
+</body>
+
+</html>
+

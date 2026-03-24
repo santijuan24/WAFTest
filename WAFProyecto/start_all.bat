@@ -1,17 +1,24 @@
 @echo off
-REM Start WAF SIEM & Vulnerable Shop
+echo ============================================
+echo    WAF Project - Starting All Services
+echo ============================================
+echo.
+echo IMPORTANT: Run this from WAFProyecto folder
+echo.
 
-echo Arrancando la Tienda Vulnerable (ShopVuln) en puerto 5000...
-start "ShopVuln Backend (Port 5000)" cmd /c "cd /d %~dp0waf_project && python -m uvicorn test_backend.main:app --port 5000 --reload"
+echo [1/2] Starting API ^& Dashboard (Port 8000)...
+start "WAF API (8000)" cmd /k "cd /d %~dp0waf_project && python -m uvicorn api.server:app --host 0.0.0.0 --port 8000 --reload"
 
-echo Arrancando el proxy WAF y Dashboard de Seguridad en puerto 9000...
-start "WAF Proxy & Panel (Port 9000)" cmd /c "cd /d %~dp0waf_project && python -m uvicorn waf_proxy.main:app --port 9000 --reload"
+ping -n 3 127.0.0.1 >nul
+
+echo [2/2] Starting WAF Proxy (Port 8080)...
+start "WAF Proxy (8080)" cmd /k "cd /d %~dp0waf_project && python -m uvicorn main:app --host 0.0.0.0 --port 8080 --reload"
 
 echo.
-echo Todos los servicios han sido lanzados.
-echo ----------------------------------------------------
-echo 🛒 ShopVuln (App Vulnerable): http://localhost:5000/
-echo 🛡️ WAF SIEM Panel de Admin:  http://localhost:9000/dashboard/
-echo ----------------------------------------------------
+echo ============================================
+echo    Services Running:
+echo    API + Dashboard : http://localhost:8000
+echo    WAF Proxy       : http://localhost:8080
+echo ============================================
 echo.
 pause

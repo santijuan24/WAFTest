@@ -10,44 +10,140 @@
     },
     {
       "id": "sqli-002",
-      "name": "Classic OR 1=1",
-      "pattern": "\\bOR\\b\\s+['\"]?[a-zA-Z0-9_]+['\"]?\\s*=\\s*['\"]?[a-zA-Z0-9_]+['\"]?",
+      "name": "OR boolean tautology",
+      "pattern": "\\bOR\\b\\s+['\"]?\\w+['\"]?\\s*=\\s*['\"]?\\w+['\"]?",
       "score": 85
     },
     {
       "id": "sqli-003",
-      "name": "SQL Comment evasion",
-      "pattern": "(--|#|/\\*[\\s\\S]*?\\*/)",
-      "score": 60
+      "name": "SQL line comment (--)",
+      "pattern": "--\\s",
+      "score": 50
     },
     {
       "id": "sqli-004",
-      "name": "Stacked queries",
-      "pattern": ";\\s*(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\\b",
-      "score": 90
+      "name": "SQL block comment",
+      "pattern": "/\\*[\\s\\S]*?\\*/",
+      "score": 45
     },
     {
       "id": "sqli-005",
-      "name": "DROP TABLE",
-      "pattern": "\\bDROP\\b[\\s]+\\bTABLE\\b",
-      "score": 95
+      "name": "Stacked query",
+      "pattern": ";\\s*(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|TRUNCATE|EXEC)\\b",
+      "score": 90
     },
     {
       "id": "sqli-006",
-      "name": "Boolean blind – AND",
+      "name": "DROP TABLE / DATABASE",
+      "pattern": "\\bDROP\\b\\s+(TABLE|DATABASE)\\b",
+      "score": 95
+    },
+    {
+      "id": "sqli-007",
+      "name": "AND boolean tautology",
       "pattern": "\\bAND\\b\\s+['\"]?\\d+['\"]?\\s*=\\s*['\"]?\\d+['\"]?",
       "score": 80
     },
     {
-      "id": "sqli-007",
-      "name": "Sleep/benchmark (time-based)",
-      "pattern": "\\b(SLEEP|BENCHMARK|WAITFOR\\s+DELAY)\\s*\\(",
+      "id": "sqli-008",
+      "name": "Time-based (SLEEP/BENCHMARK/WAITFOR)",
+      "pattern": "\\b(SLEEP|BENCHMARK|WAITFOR\\s+DELAY|pg_sleep)\\s*\\(",
       "score": 95
     },
     {
-      "id": "sqli-008",
-      "name": "Single quote injection attempt",
+      "id": "sqli-009",
+      "name": "Quote then keyword",
       "pattern": "['\"]\\s*(--|#|/\\*|\\bOR\\b|\\bAND\\b|\\bUNION\\b|\\bSELECT\\b)",
+      "score": 85
+    },
+    {
+      "id": "sqli-010",
+      "name": "SELECT FROM",
+      "pattern": "\\bSELECT\\b[\\s\\S]+?\\bFROM\\b",
+      "score": 75
+    },
+    {
+      "id": "sqli-011",
+      "name": "INSERT INTO",
+      "pattern": "\\bINSERT\\b\\s+\\bINTO\\b",
+      "score": 85
+    },
+    {
+      "id": "sqli-012",
+      "name": "UPDATE SET",
+      "pattern": "\\bUPDATE\\b\\s+\\w+\\s+\\bSET\\b",
+      "score": 85
+    },
+    {
+      "id": "sqli-013",
+      "name": "DELETE FROM",
+      "pattern": "\\bDELETE\\b\\s+\\bFROM\\b",
+      "score": 85
+    },
+    {
+      "id": "sqli-014",
+      "name": "INFORMATION_SCHEMA access",
+      "pattern": "\\bINFORMATION_SCHEMA\\b",
+      "score": 90
+    },
+    {
+      "id": "sqli-015",
+      "name": "CONCAT / GROUP_CONCAT extraction",
+      "pattern": "\\b(CONCAT|GROUP_CONCAT|CONCAT_WS)\\s*\\(",
+      "score": 75
+    },
+    {
+      "id": "sqli-016",
+      "name": "CHAR() obfuscation",
+      "pattern": "\\bCHAR\\s*\\(\\s*\\d+",
+      "score": 80
+    },
+    {
+      "id": "sqli-017",
+      "name": "ORDER BY probing",
+      "pattern": "\\bORDER\\s+BY\\s+\\d{2,}",
+      "score": 70
+    },
+    {
+      "id": "sqli-018",
+      "name": "HAVING clause injection",
+      "pattern": "\\bHAVING\\b\\s+\\d+\\s*=\\s*\\d+",
+      "score": 80
+    },
+    {
+      "id": "sqli-019",
+      "name": "HEX encoding (0x)",
+      "pattern": "0x[0-9a-f]{6,}",
+      "score": 65
+    },
+    {
+      "id": "sqli-020",
+      "name": "Hash comment (#)",
+      "pattern": "#\\s*(SELECT|INSERT|DROP|DELETE|UPDATE)",
+      "score": 55
+    },
+    {
+      "id": "sqli-021",
+      "name": "EXEC/EXECUTE command",
+      "pattern": "\\b(EXEC|EXECUTE)\\s+(xp_|sp_|\\w)",
+      "score": 90
+    },
+    {
+      "id": "sqli-022",
+      "name": "LOAD_FILE / INTO OUTFILE",
+      "pattern": "\\b(LOAD_FILE|INTO\\s+OUTFILE|INTO\\s+DUMPFILE)\\b",
+      "score": 95
+    },
+    {
+      "id": "sqli-023",
+      "name": "Tautology 1=1 or true pattern",
+      "pattern": "(\\b1\\s*=\\s*1\\b|'\\s*='\\s*'|\"\\s*=\"\\s*\"|\\btrue\\b\\s*=\\s*\\btrue\\b)",
+      "score": 80
+    },
+    {
+      "id": "sqli-024",
+      "name": "Inline comment evasion (/*!)",
+      "pattern": "/\\*!\\d*\\s*\\w+",
       "score": 85
     }
   ]

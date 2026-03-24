@@ -1,54 +1,78 @@
 {
-    "category": "Local File Inclusion (LFI) / Path Traversal",
-    "base_score": 72,
-    "rules": [
-        {
-            "id": "lfi-001",
-            "name": "Unix path traversal",
-            "pattern": "(\\.\\./){2,}",
-            "score": 80
-        },
-        {
-            "id": "lfi-002",
-            "name": "Windows path traversal",
-            "pattern": "(\\.\\.\\\\/){1,}",
-            "score": 80
-        },
-        {
-            "id": "lfi-003",
-            "name": "URL-encoded traversal",
-            "pattern": "(%2e%2e%2f|%2e%2e/|\\.%2f|%2e\\.)",
-            "score": 85
-        },
-        {
-            "id": "lfi-004",
-            "name": "/etc/passwd access",
-            "pattern": "/etc/passwd",
-            "score": 95
-        },
-        {
-            "id": "lfi-005",
-            "name": "/etc/shadow access",
-            "pattern": "/etc/shadow",
-            "score": 95
-        },
-        {
-            "id": "lfi-006",
-            "name": "Windows system directory",
-            "pattern": "\\\\windows\\\\system32",
-            "score": 90
-        },
-        {
-            "id": "lfi-007",
-            "name": "PHP wrapper",
-            "pattern": "php://(filter|input|data)",
-            "score": 85
-        },
-        {
-            "id": "lfi-008",
-            "name": "Null byte injection",
-            "pattern": "%00",
-            "score": 75
-        }
-    ]
+  "category": "Local File Inclusion (LFI) / Path Traversal",
+  "base_score": 72,
+  "rules": [
+    {
+      "id": "lfi-001",
+      "name": "Unix path traversal (../ repeated)",
+      "pattern": "(\\.\\./){2,}",
+      "score": 80
+    },
+    {
+      "id": "lfi-002",
+      "name": "Windows path traversal (..\\\\)",
+      "pattern": "(\\.\\.\\/|\\.\\.\\\\.){1,}",
+      "score": 80
+    },
+    {
+      "id": "lfi-003",
+      "name": "URL-encoded traversal",
+      "pattern": "(%2e%2e%2f|%2e%2e/|\\.%2f|%2e\\.|\\.\\./|%252e%252e)",
+      "score": 85
+    },
+    {
+      "id": "lfi-004",
+      "name": "/etc/passwd or /etc/shadow",
+      "pattern": "/etc/(passwd|shadow|hosts|group|resolv\\.conf)",
+      "score": 95
+    },
+    {
+      "id": "lfi-005",
+      "name": "Windows system path",
+      "pattern": "(\\\\|/)windows(\\\\|/)(system32|syswow64|win\\.ini|boot\\.ini)",
+      "score": 90
+    },
+    {
+      "id": "lfi-006",
+      "name": "PHP wrapper (php://)",
+      "pattern": "php://(filter|input|data|expect|fd|memory|temp)",
+      "score": 85
+    },
+    {
+      "id": "lfi-007",
+      "name": "Null byte injection",
+      "pattern": "(%00|\\\\x00|\\\\0)",
+      "score": 75
+    },
+    {
+      "id": "lfi-008",
+      "name": "Linux proc filesystem",
+      "pattern": "/proc/(self|\\d+)/(environ|cmdline|fd|maps|status)",
+      "score": 90
+    },
+    {
+      "id": "lfi-009",
+      "name": "Node.js sensitive files",
+      "pattern": "(package\\.json|node_modules|\\.(env|npmrc|gitignore)|yarn\\.lock|pm2\\.config)",
+      "score": 70
+    },
+    {
+      "id": "lfi-010",
+      "name": "Common config file access",
+      "pattern": "(wp-config\\.php|config\\.php|database\\.yml|\\.htaccess|web\\.config|\\.DS_Store)",
+      "score": 75
+    },
+    {
+      "id": "lfi-011",
+      "name": "Docker / container files",
+      "pattern": "(Dockerfile|docker-compose|\\.(dockerignore|kube))",
+      "score": 70
+    },
+    {
+      "id": "lfi-012",
+      "name": "SSH / credential files",
+      "pattern": "(\\.ssh/(id_rsa|authorized_keys|known_hosts)|\\.aws/credentials|\\.git/config)",
+      "score": 95
+    }
+  ]
 }

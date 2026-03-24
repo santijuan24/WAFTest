@@ -1,7 +1,5 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+sqlalchemy>=2.0.0
 pymysql
-pydantic
-httpx
-requests
+httpx>=0.24.0

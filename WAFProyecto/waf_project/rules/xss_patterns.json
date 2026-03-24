@@ -1,54 +1,126 @@
 {
-    "category": "Cross-Site Scripting (XSS)",
-    "base_score": 70,
-    "rules": [
-        {
-            "id": "xss-001",
-            "name": "Script tag injection",
-            "pattern": "<\\s*script[\\s\\S]*?>",
-            "score": 90
-        },
-        {
-            "id": "xss-002",
-            "name": "javascript: URI",
-            "pattern": "javascript\\s*:",
-            "score": 85
-        },
-        {
-            "id": "xss-003",
-            "name": "Inline event handler",
-            "pattern": "\\bon\\w+\\s*=\\s*[\"']",
-            "score": 80
-        },
-        {
-            "id": "xss-004",
-            "name": "eval() call",
-            "pattern": "\\beval\\s*\\(",
-            "score": 85
-        },
-        {
-            "id": "xss-005",
-            "name": "document.cookie access",
-            "pattern": "document\\s*\\.\\s*(cookie|write|location)",
-            "score": 80
-        },
-        {
-            "id": "xss-006",
-            "name": "Alert/confirm payload",
-            "pattern": "\\b(alert|confirm|prompt)\\s*\\(",
-            "score": 70
-        },
-        {
-            "id": "xss-007",
-            "name": "SVG onload vector",
-            "pattern": "<\\s*svg[^>]+onload",
-            "score": 85
-        },
-        {
-            "id": "xss-008",
-            "name": "img src javascript",
-            "pattern": "<\\s*img[^>]+src\\s*=\\s*['\"]?\\s*javascript:",
-            "score": 90
-        }
-    ]
+  "category": "Cross-Site Scripting (XSS)",
+  "base_score": 70,
+  "rules": [
+    {
+      "id": "xss-001",
+      "name": "Script tag",
+      "pattern": "<\\s*/?\\s*script[\\s>]",
+      "score": 90
+    },
+    {
+      "id": "xss-002",
+      "name": "javascript: URI",
+      "pattern": "javascript\\s*:",
+      "score": 85
+    },
+    {
+      "id": "xss-003",
+      "name": "Inline event handler (on*=)",
+      "pattern": "\\bon(error|load|click|mouseover|focus|blur|submit|change|input|keydown|keyup|keypress|abort|mouseenter|contextmenu|dblclick|drag|drop|animationend|transitionend|pointerover|beforeinput|toggle)\\s*=",
+      "score": 85
+    },
+    {
+      "id": "xss-004",
+      "name": "eval() call",
+      "pattern": "\\beval\\s*\\(",
+      "score": 85
+    },
+    {
+      "id": "xss-005",
+      "name": "document.cookie / document.write / document.location",
+      "pattern": "document\\s*\\.\\s*(cookie|write|writeln|location|domain)",
+      "score": 80
+    },
+    {
+      "id": "xss-006",
+      "name": "alert/confirm/prompt payload",
+      "pattern": "\\b(alert|confirm|prompt)\\s*\\(",
+      "score": 75
+    },
+    {
+      "id": "xss-007",
+      "name": "SVG/math tag with event",
+      "pattern": "<\\s*(svg|math)[^>]+(on\\w+\\s*=|href\\s*=\\s*['\"]?javascript)",
+      "score": 90
+    },
+    {
+      "id": "xss-008",
+      "name": "img/iframe/video/audio/source tag",
+      "pattern": "<\\s*(img|iframe|video|audio|source|embed|object|applet|frame|frameset|base|link|meta)\\b",
+      "score": 75
+    },
+    {
+      "id": "xss-009",
+      "name": "data: URI",
+      "pattern": "data\\s*:\\s*(text/html|application/x|image/svg)",
+      "score": 85
+    },
+    {
+      "id": "xss-010",
+      "name": "vbscript: URI",
+      "pattern": "vbscript\\s*:",
+      "score": 85
+    },
+    {
+      "id": "xss-011",
+      "name": "window.location manipulation",
+      "pattern": "window\\s*\\.\\s*(location|open|navigate)",
+      "score": 75
+    },
+    {
+      "id": "xss-012",
+      "name": "innerHTML / outerHTML assignment",
+      "pattern": "\\.(innerHTML|outerHTML|insertAdjacentHTML)\\s*[=\\(]",
+      "score": 80
+    },
+    {
+      "id": "xss-013",
+      "name": "setTimeout/setInterval with string",
+      "pattern": "\\b(setTimeout|setInterval)\\s*\\(\\s*['\"`]",
+      "score": 80
+    },
+    {
+      "id": "xss-014",
+      "name": "Function constructor",
+      "pattern": "\\bFunction\\s*\\(",
+      "score": 85
+    },
+    {
+      "id": "xss-015",
+      "name": "fromCharCode encoding",
+      "pattern": "String\\s*\\.\\s*fromCharCode",
+      "score": 80
+    },
+    {
+      "id": "xss-016",
+      "name": "atob() base64 decode",
+      "pattern": "\\batob\\s*\\(",
+      "score": 70
+    },
+    {
+      "id": "xss-017",
+      "name": "Closing tag then script",
+      "pattern": "</\\s*\\w+\\s*>\\s*<\\s*script",
+      "score": 90
+    },
+    {
+      "id": "xss-018",
+      "name": "Expression in style (IE)",
+      "pattern": "\\bexpression\\s*\\(",
+      "score": 75
+    },
+    {
+      "id": "xss-019",
+      "name": "import() dynamic import",
+      "pattern": "\\bimport\\s*\\(\\s*['\"`]",
+      "score": 70
+    },
+    {
+      "id": "xss-020",
+      "name": "Template literal injection",
+      "pattern": "\\$\\{[^}]*(document|window|cookie|location|fetch|XMLHttpRequest)",
+      "score": 80
+    }
+  ]
 }
