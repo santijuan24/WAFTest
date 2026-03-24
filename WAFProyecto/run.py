@@ -15,22 +15,26 @@ PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "waf_proj
 
 def run_api():
     print("[*] Starting API & Dashboard on port 8000...")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = PROJECT_DIR
     subprocess.run([
         sys.executable, "-m", "uvicorn",
         "api.server:app",
         "--host", "0.0.0.0", "--port", "8000",
         "--reload", "--app-dir", PROJECT_DIR,
-    ])
+    ], env=env)
 
 
 def run_waf():
     print("[*] Starting WAF Proxy on port 8080...")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = PROJECT_DIR
     subprocess.run([
         sys.executable, "-m", "uvicorn",
         "main:app",
         "--host", "0.0.0.0", "--port", "8080",
         "--reload", "--app-dir", PROJECT_DIR,
-    ])
+    ], env=env)
 
 
 def run_all():
