@@ -5,975 +5,499 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
-  <title>WAF SIEM Dashboard</title>
+  <title>Sentinel WAF Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       color-scheme: dark;
-      --bg: #09090b;
-      --bg-panel: #18181b;
-      --bg-card: #18181b;
-      --border: #27272a;
-      --border-hover: #3f3f46;
-      --text: #fafafa;
-      --text-muted: #a1a1aa;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --danger: #ef4444;
-      --danger-hover: #dc2626;
-      --danger-bg: rgba(239, 68, 68, 0.15);
-      --success: #10b981;
-      --success-bg: rgba(16, 185, 129, 0.15);
-      --warning: #f59e0b;
-      --warning-bg: rgba(245, 158, 11, 0.15);
-      --sidebar-width: 250px;
+      --bg: #000000;
+      --bg-panel: #050505;
+      --bg-card: #0a0a0a;
+      --border: #1f1f1f;
+      --border-hover: #333333;
+      --text: #ffffff;
+      --text-muted: #888888;
+      --sidebar-width: 260px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
 
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      font-size: 0.85rem;
-      display: flex;
-    }
-
+    body { background: var(--bg); color: var(--text); min-height: 100vh; font-size: 0.8rem; display: flex; }
     a { color: inherit; text-decoration: none; }
 
     /* ── Sidebar ── */
     nav {
-      width: var(--sidebar-width);
-      background: var(--bg);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 0; bottom: 0; left: 0;
-      z-index: 100;
+      width: var(--sidebar-width); background: var(--bg); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100;
+      padding: 32px 0;
     }
 
-    .brand {
-      padding: 24px 20px;
-      margin-bottom: 8px;
-    }
-    .brand-title {
-      font-weight: 700; font-size: 1.25rem; color: #60a5fa; letter-spacing: 0.1em;
-    }
-    .brand-subtitle {
-      font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase; margin-top: 4px;
-    }
+    .brand { padding: 0 24px; margin-bottom: 40px; }
+    .brand-title { font-weight: 700; font-size: 1.4rem; color: #fff; letter-spacing: -0.02em; }
+    .brand-subtitle { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
 
-    .nav-btn {
-      margin: 0 20px 24px 20px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: background 0.2s;
-    }
-    .nav-btn:hover { background: var(--primary-hover); }
-
-    .nav-links {
-      display: flex; flex-direction: column; gap: 4px; padding: 0 12px;
-      flex: 1; overflow-y: auto;
-    }
-
+    .nav-group { margin-bottom: 24px; }
+    .nav-label { font-size: 0.65rem; color: var(--text-muted); padding: 0 24px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    
     nav a.menu-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 16px;
-      border-radius: 6px;
-      color: var(--text-muted);
-      font-weight: 500;
-      transition: all 0.2s;
+      display: flex; align-items: center; gap: 12px; padding: 10px 24px; color: var(--text-muted); font-weight: 500; transition: all 0.2s;
     }
-
-    nav a.menu-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
-    nav a.menu-item.active {
-      color: var(--text);
-      background: rgba(37, 99, 235, 0.15);
-      border-left: 3px solid var(--primary);
-      border-radius: 0 6px 6px 0;
-    }
-
-    .nav-footer {
-      padding: 20px;
-      border-top: 1px solid var(--border);
-      display: flex; flex-direction: column; gap: 8px;
-    }
+    nav a.menu-item:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+    nav a.menu-item.active { color: var(--text); background: rgba(255,255,255,0.08); border-left: 3px solid #fff; }
+    nav a.menu-item svg { width: 16px; height: 16px; opacity: 0.7; }
 
     /* ── Header ── */
     header {
-      position: fixed;
-      top: 0; left: var(--sidebar-width); right: 0;
-      height: 70px;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 32px;
-      z-index: 90;
-      border-bottom: 1px solid var(--border);
+      position: fixed; top: 0; left: var(--sidebar-width); right: 0; height: 60px;
+      background: var(--bg); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; z-index: 90; border-bottom: 1px solid var(--border);
     }
-
-    header h1 {
-      font-size: 1.5rem; font-weight: 600; color: var(--text);
-    }
-
-    .header-actions {
-      display: flex; align-items: center; gap: 16px;
-    }
-
-    .icon-btn {
-      background: transparent; border: none; color: var(--text-muted);
-      cursor: pointer; padding: 6px; border-radius: 4px;
-      transition: 0.2s; display: flex; align-items: center; justify-content: center;
-    }
-    .icon-btn:hover { background: var(--border); color: var(--text); }
-
-    .btn-outline {
-      background: transparent; border: 1px solid var(--primary); color: var(--primary);
-      padding: 6px 16px; border-radius: 4px; font-weight: 500; cursor: pointer; transition: 0.2s;
-      font-size: 0.8rem;
-    }
-    .btn-outline:hover { background: var(--primary); color: #fff; }
-
-    .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--border); overflow: hidden; }
+    header h1 { font-size: 0.95rem; font-weight: 600; color: #fff; text-transform: uppercase; letter-spacing: 0.05em; display:flex; align-items:center; gap:8px;}
+    .header-sub { font-size: 0.65rem; color: var(--text-muted); margin-left: 20px;}
+    .header-stats { display: flex; gap: 32px; font-size: 0.7rem; color: var(--text-muted); }
+    .header-stats strong { color: #fff; font-weight: 600; margin-left: 4px; }
 
     /* ── Main Content ── */
-    main {
-      margin-left: var(--sidebar-width);
-      padding: 100px 32px 40px 32px;
-      flex: 1;
-      width: calc(100% - var(--sidebar-width));
-    }
-
+    main { margin-left: var(--sidebar-width); padding: 90px 48px 48px 48px; flex: 1; width: calc(100% - var(--sidebar-width)); }
     .section { display: none; animation: fadeIn 0.3s ease; }
     .section.active { display: block; }
-
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ── KPIs ── */
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    @media (max-width: 1200px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+    /* ── Grid y Componentes Generales ── */
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 32px; }
+    .kpi { background: var(--bg-card); padding: 32px 24px; display: flex; flex-direction: column; justify-content: center; }
+    .kpi.active-kpi { border-top: 2px solid #fff; }
+    .kpi .value { font-size: 2.2rem; font-weight: 700; color: #fff; line-height: 1; margin-bottom: 8px; letter-spacing:-0.02em;}
+    .kpi .label { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 
-    .kpi {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-      display: flex; flex-direction: column; gap: 12px;
-      position: relative;
-    }
-    
-    .kpi-header { display: flex; justify-content: space-between; align-items: flex-start; }
-    .kpi-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    .kpi-icon svg { width: 18px; height: 18px; }
-    
-    .kpi-trend { font-size: 0.75rem; font-weight: 600; }
-    .kpi-trend.up { color: var(--success); }
-    .kpi-trend.down { color: var(--danger); }
-    
-    .kpi .label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .kpi .value { font-size: 2rem; font-weight: 700; color: #fff; line-height: 1; }
+    .section-title { font-size: 1.15rem; font-weight: 600; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 24px; margin-top: 40px;}
+    .page-title { font-size: 1.4rem; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.02em; }
+    .page-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 32px; }
 
-    /* ── Cards & Charts ── */
-    .charts-row {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-    @media (max-width: 1000px) { .charts-row { grid-template-columns: 1fr; } }
-
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .card h3 { font-size: 1rem; font-weight: 600; color: var(--text); }
-    .card-link { color: var(--primary); font-size: 0.8rem; font-weight: 500; }
-
-    canvas { max-height: 260px; }
-
-    /* ── Tables ── */
-    .table-wrap { overflow-x: auto; margin: -24px; margin-top: 0; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-    th {
-      color: var(--text-muted); padding: 12px 24px; text-align: left;
-      font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing:0.05em;
-      border-bottom: 1px solid var(--border);
-    }
-    td { padding: 14px 24px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    /* ── Tablas estilo UI estricta ── */
+    .table-wrap { width: 100%; border: 1px solid var(--border); background: var(--bg-card); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    th { color: var(--text-muted); padding: 12px 24px; text-align: left; font-weight: 600; font-size: 0.65rem; text-transform: uppercase; letter-spacing:0.05em; border-bottom: 1px solid var(--border); }
+    td { padding: 16px 24px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255, 255, 255, 0.01); }
+    
+    .badge-text { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .action-bloqueada { color: var(--text-muted); }
+    .action-alerta { color: #fff; }
+    .action-permitida { color: var(--text-muted); opacity: 0.5; }
 
-    .badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;
-    }
-    .badge-critical { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
-    .badge-media { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
-    .badge-baja { background: var(--success-bg); color: var(--text); border: 1px solid var(--border); }
+    .riesgo-alto { color: #fff; }
+    .riesgo-medio { color: var(--text-muted); }
+    .riesgo-bajo { color: var(--text-muted); opacity: 0.5; }
 
-    .action-badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; font-size: 0.8rem; }
-    .action-block { color: var(--danger); }
-    .action-allow { color: var(--success); }
-    .action-log { color: var(--primary); }
-
-    /* ── Filters ── */
-    .filters {
-      display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
-    }
-    .filters input, .filters select {
-      background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text);
-      padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; outline: none; transition: 0.2s;
-    }
-    .filters input:focus, .filters select:focus { border-color: var(--primary); background: rgba(255,255,255,0.06); }
-    .filters select option { background: var(--bg-panel); color: var(--text); padding: 8px; }
-
-    .btn {
-      background: var(--primary); color: #fff; border: none; padding: 8px 16px;
-      border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: 0.2s;
-    }
-    .btn:hover { background: var(--primary-hover); }
-    .btn-danger { background: var(--danger); }
-    .btn-danger:hover { background: var(--danger-hover); }
-
-    .toast {
-      position: fixed; bottom: 32px; right: 32px; background: var(--bg-card); color: var(--text);
-      padding: 14px 24px; border-radius: 6px; border: 1px solid var(--border);
-      font-size: 0.85rem; display: none; z-index: 999; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
-    .toast.error { border-bottom: 3px solid var(--danger); }
-    .toast.success { border-bottom: 3px solid var(--success); }
-
-    code {
-      font-family: monospace; font-size: 0.8rem; color: #60a5fa;
-    }
-
-    /* iOS Toggles */
-    .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; vertical-align: middle; }
+    /* ── Toggles ── */
+    .toggle-switch { position: relative; display: inline-block; width: 34px; height: 18px; vertical-align: middle; margin-right: 8px;}
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .3s; border-radius: 22px; }
-    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: #fff; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    input:checked + .slider { background-color: var(--success); }
-    input:checked + .slider:before { transform: translateX(18px); }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .3s; border-radius: 18px; }
+    .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background-color: #fff; }
+    input:checked + .slider:before { transform: translateX(16px); background-color: var(--bg); }
+
+    /* Tarjetas de alertas */
+    .alert-card { background: var(--bg-card); border: 1px solid var(--border); padding: 16px 24px; margin-bottom: 8px; }
+    .alert-card header { position: static; height: auto; padding: 0; border: none; display: flex; justify-content: space-between; margin-bottom: 8px; background: transparent;}
+    .alert-card .level { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display:flex; align-items:center; gap:6px;}
+    .alert-card .msg { font-size: 0.85rem; color: #fff; }
+    .alert-card .time { font-size: 0.65rem; color: var(--text-muted); margin-top: 12px; }
+    .threat-card { background: var(--bg-card); border: 1px solid var(--border); padding: 16px 24px; margin-bottom: 8px; display:flex; flex-direction:column; gap:8px;}
+    .threat-card .header { display:flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight:600;}
+    .threat-card .code { font-family: monospace; font-size: 0.8rem; color: #fff; background: rgba(255,255,255,0.03); padding: 8px 12px; border: 1px solid var(--border); word-break: break-all;}
+
   </style>
-  <script>
-    if (!localStorage.getItem('waf_token')) {
-      window.location.href = 'login.html';
-    }
-  </script>
+  <script>if (!localStorage.getItem('waf_token')) window.location.href = 'login.html';</script>
 </head>
 
 <body>
-
-  <!-- Sidebar Nav -->
   <nav>
     <div class="brand">
-      <div class="brand-title">SENTINEL</div>
-      <div class="brand-subtitle">Protección de Activos</div>
+      <div class="brand-title">Sentinel</div>
+      <div class="brand-subtitle" style="opacity: 0.5;">WAF</div>
     </div>
     
-    <button class="nav-btn" onclick="alert('Nuevo Incidente > Funcionalidad en desarrollo')">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
-      Nuevo Incidente
-    </button>
-
-    <div class="nav-links">
-      <a href="#" class="menu-item active" onclick="showSection('overview',this)" id="navOverview">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        Panel de Control
-      </a>
-      <a href="#" class="menu-item" onclick="showSection('logs',this)" id="navLogs">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Eventos WAF
-      </a>
-      <a href="#" class="menu-item" onclick="showSection('rules',this)" id="navRules">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-        Reglas Activas
-      </a>
-      <a href="#" class="menu-item" onclick="showSection('blocked',this)" id="navThreatMap">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        Análisis de IP
-      </a>
-      <a href="#" class="menu-item" onclick="showSection('alerts',this)" id="navAlerts">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
-        Reportes
-        <span class="alert-badge" id="alertBadge" style="display:none;margin-left:auto;">0</span>
-      </a>
+    <div class="nav-group">
+      <div class="nav-label">Principal</div>
+      <a href="#" class="menu-item active" onclick="show('overview', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Dashboard</a>
+      <a href="#" class="menu-item" onclick="show('logs', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Registro</a>
+      <a href="#" class="menu-item" onclick="show('alerts', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Alertas</a>
     </div>
 
-    <div class="nav-footer">
-      <a href="#" class="menu-item">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Soporte
-      </a>
-      <a href="#" class="menu-item" onclick="logout()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Cerrar Sesión
-      </a>
+    <div class="nav-group">
+      <div class="nav-label">Análisis y Control</div>
+      <a href="#" class="menu-item" onclick="show('rules', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Reglas activas</a>
+      <a href="#" class="menu-item" onclick="show('ips', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Análisis de IP</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Sistema</div>
+      <a href="#" class="menu-item" onclick="show('config', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Configuración</a>
+      <a href="#" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Soporte</a>
+      <a href="#" class="menu-item" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Cerrar sesión</a>
     </div>
   </nav>
 
-  <!-- Header -->
   <header>
-    <h1 id="headerTitle">Panel de Control</h1>
-    <div style="display:flex; align-items:center; gap:12px;">
-      <span id="wafStatusText" style="font-size:0.85rem; font-weight:600; color:var(--success);">WAF ACTIVO</span>
-      <label class="toggle-switch">
-        <input type="checkbox" id="wafToggle" checked onchange="toggleWAFUI()">
-        <span class="slider"></span>
-      </label>
+    <div>
+      <h1><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> SISTEMA ACTIVO</h1>
+      <div class="header-sub">Protección en tiempo real</div>
     </div>
-
-    
-    <div class="header-actions">
-      <button class="icon-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      </button>
-      <button class="icon-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      </button>
-      <button class="btn btn-primary">Desplegar Reglas</button>
-      <div class="avatar">
-        <img src="https://ui-avatars.com/api/?name=Admin&background=1e293b&color=fff" alt="User" style="width:100%;height:100%;">
-      </div>
+    <div class="header-stats">
+      <span>Estado: <strong id="topStatus">Activo</strong></span>
+      <span>Reglas: <strong>SQLi, XSS, LFI</strong></span>
+      <span>Actualizado: <strong>hace <span id="timeAgo">1</span> min</strong></span>
     </div>
   </header>
 
-  <!-- Main -->
   <main>
-
     <!-- OVERVIEW -->
-    <div class="section active" id="section-overview">
+    <div class="section active" id="sec-overview">
+      <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; font-weight:600;">DATOS SIMULADOS PARA DEMOSTRACIÓN</div>
       <div class="kpis">
         <div class="kpi">
-          <div class="kpi-header">
-            <div class="kpi-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            </div>
-            <span class="kpi-trend up">+12.4%</span>
-          </div>
-          <div class="label">Peticiones Totales</div>
-          <div class="value" id="kTotal">–</div>
+          <div class="value" id="kTotal">0</div><div class="label">SOLICITUDES</div>
         </div>
         <div class="kpi">
-          <div class="kpi-header">
-            <div class="kpi-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
-            </div>
-            <span class="kpi-trend down">+2.1%</span>
-          </div>
-          <div class="label">Ataques Bloqueados</div>
-          <div class="value" id="kBlocked">–</div>
+          <div class="value" id="kBlocked">0</div><div class="label">ATAQUES DETECTADOS</div>
         </div>
         <div class="kpi">
-          <div class="kpi-header">
-            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-            </div>
-            <span class="kpi-trend up">+14.2%</span>
-          </div>
-          <div class="label">Peticiones Permitidas</div>
-          <div class="value" id="kAllowed">–</div>
+          <div class="value" id="kIPs">0</div><div class="label">IPS BLOQUEADAS</div>
         </div>
         <div class="kpi">
-          <div class="kpi-header">
-            <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-            </div>
-            <span class="kpi-trend" style="color:var(--text-muted)">Estable</span>
-          </div>
-          <div class="label">IPs Bloqueadas</div>
-          <div class="value" id="kIPs">–</div>
-        </div>
-        
-        <!-- Hidden old KPIs to not break JS -->
-        <span id="kScore" style="display:none">0</span>
-        <span id="kAlerts" style="display:none">0</span>
-      </div>
-      
-      <div class="charts-row">
-        <div class="card">
-          <div class="card-header" style="margin-bottom:12px;">
-            <h3>Tráfico de Red (24h)</h3>
-            <div style="display:flex; gap:12px; font-size:0.75rem; color:var(--text-muted);">
-              <span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;"></span> Permitidos</span>
-              <span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;"></span> Amenazas</span>
-            </div>
-          </div>
-          <div style="height: 240px; position:relative;">
-            <canvas id="chartAction"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header" style="margin-bottom:12px;">
-            <h3>Tipos de Ataque</h3>
-          </div>
-          <div style="height: 200px; position:relative; display:flex; justify-content:center;">
-             <canvas id="chartTypes"></canvas>
-          </div>
-          <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px;font-size:0.8rem;color:var(--text-muted);" id="chartLegendBox">
-            <!-- Simulated legend matching mockup style, actual logic binds to chart -->
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <span style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b82f6;"></span> SQL Injection</span>
-              <span>60%</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <span style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;"></span> XSS</span>
-              <span>25%</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-              <span style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;"></span> Brute Force</span>
-              <span>15%</span>
-            </div>
-          </div>
+          <div class="value" id="kAlerts">0</div><div class="label">ALERTAS</div>
         </div>
       </div>
-      
-      <div class="card" style="padding: 24px;">
-        <div class="card-header">
-          <h3>Eventos Recientes</h3>
-          <a href="#" class="card-link" onclick="showSection('logs', document.getElementById('navLogs'))">Ver todo el historial &rarr;</a>
-        </div>
-        <div class="table-wrap">
-          <table id="recentAlertsTable">
-            <thead>
-              <tr>
-                <th>Fecha y Hora</th>
-                <th>Dirección IP</th>
-                <th>Tipo de Amenaza</th>
-                <th>Severidad</th>
-                <th>Acción</th>
-                <th>Detalle</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+
+      <div class="section-title">Actividad reciente</div>
+      <div class="table-wrap" style="padding:24px; height: 320px; border-color: var(--border);">
+        <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:16px;">Tráfico HTTP</div>
+        <canvas id="mainChart"></canvas>
+      </div>
+
+      <div class="section-title">Registro de solicitudes</div>
+      <div class="table-wrap">
+        <table id="overviewLogs">
+          <thead><tr><th>HORA</th><th>IP</th><th>ENDPOINT</th><th>MÉTODO</th><th>RIESGO</th><th>ACCIÓN</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
 
     <!-- LOGS -->
-    <div class="section" id="section-logs">
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 24px;">
-        <div>
-          <h2 style="margin-bottom:8px;">Reglas de Seguridad</h2>
-          <!-- Simulated subheader if needed -->
-        </div>
-      </div>
-      
-      <div class="kpis">
-        <div class="kpi" style="border-top: 3px solid var(--primary);">
-          <div class="label" style="margin-bottom:4px;">Total Peticiones</div>
-          <div class="value" id="kLogsTotal" style="font-size:1.8rem;">–</div>
-        </div>
-        <div class="kpi" style="border-top: 3px solid var(--danger);">
-          <div class="label" style="margin-bottom:4px;">Bloqueos Activos</div>
-          <div class="value" id="kLogsBlocked" style="font-size:1.8rem;">–</div>
-        </div>
-      </div>
-
-      <div class="filters" style="display:grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr auto; gap: 16px; margin-bottom: 24px; align-items:end;">
-        <div>
-          <label style="display:block; font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-bottom:8px; text-transform:uppercase;">Búsqueda por IP o Endpoint</label>
-          <input type="text" id="filterIP" placeholder="Ej: 192.168.1.1 o /api/v1/aut" style="width:100%; border:none; background:rgba(255,255,255,0.05);">
-        </div>
-        <div>
-          <label style="display:block; font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-bottom:8px; text-transform:uppercase;">Estado</label>
-          <select id="filterAction" style="width:100%; border:none; background:rgba(255,255,255,0.05);">
-            <option value="">Todos los estados</option>
-            <option value="Permitida">Permitidos</option>
-            <option value="Alerta">Alerta</option>
-            <option value="Bloqueada">Bloqueados</option>
-          </select>
-        </div>
-        <div>
-          <label style="display:block; font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-bottom:8px; text-transform:uppercase;">Método</label>
-          <select style="width:100%; border:none; background:rgba(255,255,255,0.05);">
-            <option value="">Cualquier método</option>
-          </select>
-        </div>
-        <div>
-          <label style="display:block; font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-bottom:8px; text-transform:uppercase;">Rango de tiempo</label>
-          <select style="width:100%; border:none; background:rgba(255,255,255,0.05);">
-            <option value="">Última hora</option>
-          </select>
-        </div>
-        <div>
-          <button class="btn" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--primary); height:33px; display:flex; align-items:center; justify-content:center;" onclick="loadLogs()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-          </button>
-        </div>
-      </div>
-      
-      <div class="card" style="padding: 0;">
-        <div class="table-wrap" style="margin:0;">
-          <table id="logsTable">
-            <thead>
-              <tr>
-                <th style="padding-left:32px;">Hora</th>
-                <th>Dirección IP</th>
-                <th>Endpoint</th>
-                <th>Método</th>
-                <th>Estado</th>
-                <th>Latencia</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; padding: 16px 32px; border-top: 1px solid var(--border);">
-          <div style="font-size:0.75rem; color:var(--text-muted);" id="logsShowingInfo">
-            Mostrando 1 a 50 de 128,302 peticiones
-          </div>
-          <div class="pagination" style="margin:0;">
-            <button onclick="logsPage(-1)" style="background:transparent; border:none; padding:4px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <span style="display:flex; gap:8px;">
-              <span style="background:var(--primary); color:#fff; padding:4px 10px; border-radius:4px; font-weight:600; font-size:0.75rem;">1</span>
-              <span style="color:var(--text); padding:4px 10px; font-weight:600; font-size:0.75rem;">2</span>
-              <span style="color:var(--text); padding:4px 10px; font-weight:600; font-size:0.75rem;">3</span>
-              <span style="color:var(--text); padding:4px 10px; font-weight:600; font-size:0.75rem;">...</span>
-              <span style="color:var(--text); padding:4px 10px; font-weight:600; font-size:0.75rem;">256</span>
-            </span>
-            <button onclick="logsPage(1)" style="background:transparent; border:none; padding:4px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-      
-
-    </div>
-
-    <!-- IP ANALYSIS (Formerly BLOCKED IPs) -->
-    <div class="section" id="section-blocked">
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 24px;">
-        <div><h2 style="margin-bottom:8px;">Análisis de IP</h2></div>
-      </div>
-      
-      <!-- IP Search -->
-      <div class="card" style="padding:16px; display:flex; gap:12px; align-items:center;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="ipSearchInput" placeholder="Ingrese dirección IP para analizar comportamiento y reputación..." style="flex:1; border:none; background:transparent; color:var(--text); font-size:0.9rem; outline:none;">
-        <button class="btn btn-primary" style="padding:8px 24px; font-weight:600;">Analizar</button>
-      </div>
-
-      <div style="margin-top:24px;">
-        <div class="card" style="padding:0; display:flex; flex-direction:column;">
-          <div class="card-header" style="padding:24px; border-bottom:1px solid var(--border); margin:0;">
-            <h3 style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); font-weight:600;">Matriz de Control de Acceso (Lista Negra)</h3>
-          </div>
-          <!-- Add Block IP Form inline inside card -->
-          <div style="padding:16px 24px; background:rgba(0,0,0,0.1); border-bottom:1px solid var(--border); display:flex; gap:12px;">
-             <input type="text" id="newBlockIP" placeholder="Dirección IPv4..." style="flex:1; border:1px solid var(--border); background:var(--bg); color:var(--text); padding:8px 12px; border-radius:4px; font-size:0.8rem; outline:none;">
-             <input type="text" id="newBlockReason" placeholder="Motivo del bloqueo..." style="flex:1; border:1px solid var(--border); background:var(--bg); color:var(--text); padding:8px 12px; border-radius:4px; font-size:0.8rem; outline:none;">
-             <button class="btn btn-danger" onclick="blockIP()">Añadir a Lista Negra</button>
-          </div>
-          <div class="table-wrap" style="margin:0; flex:1;">
-            <table id="blockedTable">
-              <thead>
-                <tr>
-                  <th style="padding-left:24px;">IP Origen</th>
-                  <th>Razón</th>
-                  <th>Aplicado El</th>
-                  <th>Estatus</th>
-                  <th>Acción</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
+    <div class="section" id="sec-logs">
+      <div class="section-title" style="margin-top:0;">Registro de solicitudes</div>
+      <div class="table-wrap">
+        <table id="fullLogs">
+          <thead><tr><th>HORA</th><th>IP</th><th>ENDPOINT</th><th>MÉTODO</th><th>RIESGO</th><th>ACCIÓN</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
 
     <!-- ALERTS -->
-    <div class="section" id="section-alerts">
-      <h2>Avisos de Seguridad y Alertas</h2>
-      <div class="filters">
-        <label
-          style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--text-muted); cursor: pointer;">
-          <input type="checkbox" id="alertUnread" onchange="loadAlerts()"> Solo no leídas
-        </label>
-        <div style="margin-left:auto; display:flex; gap:12px;">
-          <button class="btn" onclick="markAllRead()">Marcar Todo Leído</button>
-          <button class="btn btn-danger" onclick="clearAlerts()">Purgar Alertas</button>
+    <div class="section" id="sec-alerts">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+        <div>
+          <div class="section-title" style="margin-top:0;">Alertas de seguridad</div>
+          <div id="alertsList"></div>
         </div>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table id="alertsTable">
-            <thead>
-              <tr>
-                <th>Severidad</th>
-                <th>Detalle del Evento</th>
-                <th>IP Origen</th>
-                <th>Timestamp</th>
-                <th>Estado</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <div>
+          <div class="section-title" style="margin-top:0;">Detección de amenazas</div>
+          <div id="threatsList"></div>
         </div>
       </div>
     </div>
 
-    <!-- REGLAS ACTIVAS -->
-    <div class="section" id="section-rules">
-      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 24px;">
-        <div>
-          <h2 style="margin-bottom:8px;">Reglas Activas</h2>
-        </div>
-        <button class="btn btn-primary" onclick="saveConfig()" style="padding: 8px 16px;">
-           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar Cambios
-        </button>
-      </div>
+    <!-- REGLAS -->
+    <div class="section" id="sec-rules">
+      <h2 class="page-title">Reglas</h2>
+      <div class="page-subtitle">Gestión de reglas de detección aplicadas por Sentinel</div>
       
-      <div class="kpis">
-        <div class="kpi" style="border-top: 3px solid var(--primary);">
-          <div class="label" style="margin-bottom:4px;">Reglas en Operación</div>
-          <div class="value" style="font-size:1.8rem;" id="kRulesTotal">–</div>
-        </div>
+      <div class="kpis" style="grid-template-columns: 1fr 1.5fr 1fr;">
+        <div class="kpi"><div class="value">5</div><div class="label">REGLAS TOTALES</div></div>
+        <div class="kpi"><div class="value">4</div><div class="label">REGLAS ACTIVAS</div></div>
+        <div class="kpi"><div class="value">1</div><div class="label">REGLAS DESACTIVADAS</div></div>
       </div>
 
-      <div style="margin-top:24px;">
-        <div class="card" style="padding:0;">
-          <div class="table-wrap" style="margin:0;">
-            <table id="rulesTable">
-              <thead>
-                <tr>
-                  <th style="padding-left:32px;">Categoría de Ataque</th>
-                </tr>
-              </thead>
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; margin-top:24px;">
+        <div>
+          <div class="section-title" style="margin-top:0;">Listado de reglas</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>REGLA</th><th>TIPO</th><th>ESTADO</th><th>ACCIÓN</th><th>RIESGO</th><th>ÚLTIMA DETECCIÓN</th></tr></thead>
               <tbody>
-                <!-- JS configGrid substitute -->
+                <tr><td style="font-weight:600;color:#fff;">SQL Injection (SQLi)</td><td>Inyección</td><td><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label> Activa</td><td class="badge-text" style="color:#fff;">Bloquear</td><td class="badge-text riesgo-alto">ALTO</td><td style="color:var(--text-muted)">hace 2 min</td></tr>
+                <tr><td style="font-weight:600;color:#fff;">Cross-Site Scripting (XSS)</td><td>Script Injection</td><td><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label> Activa</td><td class="badge-text" style="color:#fff;">Bloquear</td><td class="badge-text riesgo-medio">MEDIO</td><td style="color:var(--text-muted)">hace 5 min</td></tr>
+                <tr><td style="font-weight:600;color:#fff;">Local File Inclusion (LFI)</td><td>Acceso a archivos</td><td><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label> Activa</td><td class="badge-text" style="color:#fff;">Bloquear</td><td class="badge-text riesgo-alto">ALTO</td><td style="color:var(--text-muted)">hace 10 min</td></tr>
+                <tr><td style="font-weight:600;color:#fff;">Denegación de servicio (DDoS)</td><td>Tráfico anómalo</td><td><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label> Activa</td><td class="badge-text" style="color:#fff;">Limitar / Bloquear</td><td class="badge-text riesgo-alto">ALTO</td><td style="color:var(--text-muted)">hace 1 min</td></tr>
+                <tr><td style="font-weight:600;color:#fff;opacity:0.5;">Server-Side Request Forgery</td><td>Solicitudes internas</td><td><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label> <span style="color:var(--text-muted)">Inactiva</span></td><td class="badge-text" style="color:var(--text-muted);">Bloquear</td><td class="badge-text riesgo-alto">ALTO</td><td style="color:var(--text-muted)">hace 15 min</td></tr>
               </tbody>
             </table>
           </div>
         </div>
+        <div>
+          <div class="section-title" style="margin-top:0;">Detalle de regla</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">NOMBRE</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px; font-weight:500;">SQL Injection Pattern</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">DESCRIPCIÓN</div>
+          <div style="color:#fff; font-size:0.75rem; margin-bottom: 16px; line-height:1.5;">Detecta patrones comunes de inyección SQL en parámetros de entrada.</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px; letter-spacing:0.05em;">PATRONES</div>
+          <div style="background:var(--bg-card); border:1px solid var(--border); padding:12px; margin-bottom:4px; font-family:monospace; color:#fff; font-size:0.75rem;">' OR '1'='1</div>
+          <div style="background:var(--bg-card); border:1px solid var(--border); padding:12px; margin-bottom:16px; font-family:monospace; color:#fff; font-size:0.75rem;">UNION SELECT</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">ACCIÓN</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px;">Bloqueo automático</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">NIVEL DE RIESGO</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px; font-weight:600;">ALTO</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">ESTADO</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px; font-weight:600;">Activa</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); margin-top:32px;">Las reglas pueden activarse o desactivarse según el comportamiento del sistema.</div>
+        </div>
       </div>
     </div>
 
-  </main>
+    <!-- ANÁLISIS DE IP -->
+    <div class="section" id="sec-ips">
+      <h2 class="page-title">Análisis de IP</h2>
+      <div class="page-subtitle">Actividad y comportamiento de direcciones IP detectadas por Sentinel</div>
+      
+      <div class="kpis" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="kpi"><div class="value">124</div><div class="label">IPS ACTIVAS</div></div>
+        <div class="kpi"><div class="value">18</div><div class="label">IPS SOSPECHOSAS</div></div>
+        <div class="kpi"><div class="value" id="kIPs2">5</div><div class="label">IPS BLOQUEADAS</div></div>
+        <div class="kpi"><div class="value">12</div><div class="label">INTENTOS DE ATAQUE</div></div>
+      </div>
 
-  <div class="toast" id="toast"></div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; margin-top:24px;">
+        <div>
+          <div class="section-title" style="margin-top:0;">Listado de IPs</div>
+          <div class="table-wrap">
+            <table id="ipTable">
+              <thead><tr><th>IP</th><th>PAÍS</th><th>SOLICITUDES</th><th>RIESGO</th><th>ESTADO</th><th>ÚLTIMA ACTIVIDAD</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="section-title" style="margin-top:0;">Detalle de IP</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">IP</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px; font-weight:600;">203.0.113.42</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">PAÍS</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px;">Estados Unidos</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">ESTADO</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px;">Bloqueada</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">NIVEL DE RIESGO</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 32px; font-weight:600;">ALTO</div>
+          
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">ACTIVIDAD</div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.75rem;"><span style="color:var(--text-muted)">Solicitudes totales:</span><span style="color:#fff">145</span></div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.75rem;"><span style="color:var(--text-muted)">Intentos bloqueados:</span><span style="color:#fff">32</span></div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:32px; font-size:0.75rem;"><span style="color:var(--text-muted)">Alertas generadas:</span><span style="color:#fff">8</span></div>
+
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">PATRONES DETECTADOS</div>
+          <div style="font-size:0.75rem; color:#fff; line-height:1.8; margin-bottom:32px;">• SQL Injection<br>• XSS<br>• Intentos repetidos de login</div>
+
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">ACCIÓN</div>
+          <button style="width:100%; background:transparent; color:#fff; border:1px solid var(--border); padding:8px; font-size:0.75rem; cursor:pointer;">Desbloquear IP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="section" id="sec-config">
+      <h2 class="page-title">Configuración</h2>
+      <div class="page-subtitle">Ajustes del sistema de protección Sentinel</div>
+
+      <div class="section-title">Umbral de bloqueo</div>
+      <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:16px;">Define el nivel de riesgo necesario para bloquear una solicitud</div>
+      <div class="table-wrap" style="padding:16px 24px;">
+        <div style="padding:12px 0; border-bottom:1px solid var(--border); display:flex; align-items:center;">
+          <input type="radio" name="umbral" style="margin-right:16px;">
+          <div><div style="color:#fff; font-size:0.85rem; font-weight:500;">Bajo</div><div style="font-size:0.7rem; color:var(--text-muted);">Más estricto</div></div>
+        </div>
+        <div style="padding:12px 0; border-bottom:1px solid var(--border); display:flex; align-items:center;">
+          <input type="radio" name="umbral" checked style="margin-right:16px;">
+          <div><div style="color:#fff; font-size:0.85rem; font-weight:500;">Medio</div><div style="font-size:0.7rem; color:var(--text-muted);">Equilibrado</div></div>
+        </div>
+        <div style="padding:12px 0; display:flex; align-items:center;">
+          <input type="radio" name="umbral" style="margin-right:16px;">
+          <div><div style="color:#fff; font-size:0.85rem; font-weight:500;">Alto</div><div style="font-size:0.7rem; color:var(--text-muted);">Menos estricto</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">Configuración del agente</div>
+      <div class="table-wrap" style="padding: 16px 24px;">
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); font-size:0.8rem; color:var(--text-muted);">
+          <span>Puerto del agente</span><span style="color:#fff;">80</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); font-size:0.8rem; color:var(--text-muted);">
+          <span>Puerto del backend</span><span style="color:#fff;">3000</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:12px 0; font-size:0.8rem; color:var(--text-muted); align-items:center;">
+           <span>Estado del agente (Bypass Global)</span>
+           <label class="toggle-switch" style="margin:0;"><input type="checkbox" id="wafToggle" checked onchange="toggleWAFServer()"><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <div class="section-title">Validación de solicitudes</div>
+      <div class="table-wrap" style="padding: 16px 24px;">
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); font-size:0.8rem; color:var(--text-muted); align-items:center;">
+          <span>Validar headers</span> <label class="toggle-switch" style="margin:0;"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:12px 0; font-size:0.8rem; color:var(--text-muted); align-items:center;">
+          <span>Validar parámetros</span> <label class="toggle-switch" style="margin:0;"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+      </div>
+    </div>
+  </main>
 
   <script>
     const API = '/api';
-    let _logsOffset = 0;
-    const LOGS_LIMIT = 50;
+    function authGetHeaders() { return { 'Authorization': 'Bearer ' + localStorage.getItem('waf_token') }; }
+    function logout() { localStorage.removeItem('waf_token'); window.location.href = 'login.html'; }
 
-    function authHeaders() {
-        return { 
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + localStorage.getItem('waf_token')
-        };
-    }
-    function authGetHeaders() { 
-        return {
-          'Authorization': 'Bearer ' + localStorage.getItem('waf_token')
-        };
-    }
-    function logout() { 
-        localStorage.removeItem('waf_token');
-        window.location.href = 'login.html';
-    }
-
-    const _originalFetch = window.fetch;
+    // Interceptor para echar si caducó token
+    const _f = window.fetch;
     window.fetch = async function() {
-      try {
-        const response = await _originalFetch.apply(this, arguments);
-        if (response.status === 401 && !arguments[0].includes('/login')) logout();
-        return response;
-      } catch(e) { throw e; }
+      const resp = await _f.apply(this, arguments);
+      if (resp.status === 401 && !arguments[0].includes('/login')) logout();
+      return resp;
     };
 
-    // ── Charts ──────────────────────────────────────────────────────────────
-    let chartTypes = null, chartAction = null;
-
-    function initCharts() {
-      const opts = {
-        plugins: { legend: { labels: { color: '#a1a1aa', boxWidth: 12, padding: 20 } } },
-        maintainAspectRatio: false
-      };
-      chartTypes = new Chart(document.getElementById('chartTypes'), {
-        type: 'doughnut',
-        data: { labels: [], datasets: [{ data: [], backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'], borderWidth: 0 }] },
-        options: { ...opts, cutout: '65%', layout: { padding: 10 } }
-      });
-      chartAction = new Chart(document.getElementById('chartAction'), {
-        type: 'bar',
-        data: { labels: ['Tráfico Permitido', 'Amenazas Bloqueadas'], datasets: [{ data: [0, 0], backgroundColor: ['#10b981', '#ef4444'], borderRadius: 4, barThickness: 40 }] },
-        options: { ...opts, scales: { x: { ticks: { color: '#a1a1aa' }, grid: { display: false } }, y: { ticks: { color: '#a1a1aa' }, grid: { color: '#27272a', borderDash: [4, 4] } } }, plugins: { legend: { display: false } } }
-      });
-    }
-
-    // ── Navigation ──────────────────────────────────────────────────────────
-    function showSection(id, el) {
+    function show(id, el) {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
-      document.getElementById('section-' + id).classList.add('active');
+      document.getElementById('sec-' + id).classList.add('active');
       if (el) el.classList.add('active');
-      if (id === 'logs') loadLogs();
-      if (id === 'blocked') loadBlocked();
-      if (id === 'alerts') loadAlerts();
     }
 
-    // ── Toast ───────────────────────────────────────────────────────────────
-    function toast(msg, type = 'info') {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = 'toast ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
-      t.style.display = 'block';
-      setTimeout(() => t.style.display = 'none', 3000);
-    }
-
-    // ── Stats / Overview ────────────────────────────────────────────────────
-    async function loadStats() {
-      try {
-        const r = await fetch(`${API}/stats/`, { headers: authGetHeaders() });
-        const d = await r.json();
-        
-        // Panel Overview
-        const eTotal = document.getElementById('kTotal'); if(eTotal) eTotal.textContent = (d.total_requests ?? 0).toLocaleString();
-        const eBlocked = document.getElementById('kBlocked'); if(eBlocked) eBlocked.textContent = (d.blocked_requests ?? 0).toLocaleString();
-        const eAllowed = document.getElementById('kAllowed'); if(eAllowed) eAllowed.textContent = (d.allowed_requests ?? 0).toLocaleString();
-        const eIPs = document.getElementById('kIPs'); if(eIPs) eIPs.textContent = (d.active_blocked_ips ?? 0).toLocaleString();
-
-        const unread = d.unread_alerts ?? 0;
-        const ab = document.getElementById('alertBadge');
-        if (ab) { ab.textContent = unread; ab.style.display = unread > 0 ? 'inline' : 'none'; }
-
-        // Section KPIs
-        const elLogsTotal = document.getElementById('kLogsTotal'); if (elLogsTotal) elLogsTotal.textContent = (d.total_requests ?? 0).toLocaleString();
-        const elLogsBlocked = document.getElementById('kLogsBlocked'); if (elLogsBlocked) elLogsBlocked.textContent = (d.blocked_requests ?? 0).toLocaleString();
-        
-        const types = d.attacks_by_type ?? {};
-        const elRulesTotal = document.getElementById('kRulesTotal'); if (elRulesTotal) elRulesTotal.textContent = Object.keys(types).length.toLocaleString();
-
-        const tbodyRules = document.querySelector('#rulesTable tbody');
-        if (tbodyRules) {
-          tbodyRules.innerHTML = Object.keys(types).length
-            ? Object.entries(types).map(([name, count]) => `<tr><td style="padding-left:32px; font-weight:500;">${name} <span style="margin-left:12px; font-size:0.75rem; color:var(--danger); background:rgba(239,68,68,0.1); padding:2px 6px; border-radius:4px;">${count} detecciones</span></td></tr>`).join('')
-            : '<tr><td style="padding-left:32px; color:var(--text-muted); font-style:italic;">No hay detecciones registradas aún</td></tr>';
+    // Chart mock
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+        datasets: [{ data: [110, 150, 240, 310, 280, 260], borderColor: '#fff', borderWidth: 1, tension: 0.1, pointRadius: 0 }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#888', font: {size: 10} } },
+          y: { display: false, min: 0, max: 400 }
         }
+      }
+    });
 
-        if (chartTypes && chartAction) {
-          chartTypes.data.labels = Object.keys(types);
-          chartTypes.data.datasets[0].data = Object.values(types);
-          chartTypes.update('none');
+    // Fetches
+    async function refreshData() {
+      try {
+        const statsRes = await fetch(`${API}/stats/`, { headers: authGetHeaders() });
+        const d = await statsRes.json();
+        const logsRes = await fetch(`${API}/logs/?limit=10`, { headers: authGetHeaders() });
+        const logsData = await logsRes.json();
+        const alertsRes = await fetch(`${API}/alerts/?limit=10`, { headers: authGetHeaders() });
+        const alertsData = await alertsRes.json();
+        const ipsRes = await fetch(`${API}/blocked-ips/`, { headers: authGetHeaders() });
+        const ipsData = await ipsRes.json();
 
-          chartAction.data.datasets[0].data = [d.allowed_requests ?? 0, d.blocked_requests ?? 0];
-          chartAction.update('none');
+        // 1. Overview KPIs
+        document.getElementById('kTotal').innerText = (d.total_requests ?? 0).toLocaleString();
+        document.getElementById('kBlocked').innerText = (d.blocked_requests ?? 0).toLocaleString();
+        document.getElementById('kAlerts').innerText = (d.unread_alerts ?? 0).toLocaleString();
+        document.getElementById('kIPs').innerText = (ipsData.length ?? 0).toLocaleString();
+        document.getElementById('kIPs2').innerText = (ipsData.length ?? 0).toLocaleString();
+
+        // 2. Tablas Logs
+        function mapRiesgo(score) { return score >= 70 ? 'ALTO' : score >= 40 ? 'MEDIO' : 'BAJO'; }
+        function riskClass(score) { return score >= 70 ? 'riesgo-alto' : score >= 40 ? 'riesgo-medio' : 'riesgo-bajo'; }
+        function actionClass(acc) { return acc === 'Bloqueada' ? 'action-bloqueada' : acc === 'Alerta' ? 'action-alerta' : 'action-permitida'; }
+
+        const logHTML = logsData.map(l => `
+          <tr>
+            <td style="color:var(--text-muted)">${l.fecha_hora?.substring(11, 19) ?? '–'}</td>
+            <td style="font-weight:600; font-family:monospace; color:#fff;">${l.ip_address}</td>
+            <td style="font-family:monospace; color:var(--text-muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${l.endpoint}</td>
+            <td class="badge-text" style="color:var(--text-muted);">${l.metodo}</td>
+            <td class="badge-text ${riskClass(l.score_riesgo)}">${mapRiesgo(l.score_riesgo)}</td>
+            <td class="badge-text ${actionClass(l.accion_tomada)}">${l.accion_tomada === 'Bloqueada' ? 'BLOQUEADA' : l.accion_tomada === 'Alerta' ? 'ALERTA' : 'PERMITIDA'}</td>
+          </tr>
+        `).join('') || `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);">Sin datos</td></tr>`;
+        
+        document.querySelector('#overviewLogs tbody').innerHTML = logHTML;
+        document.querySelector('#fullLogs tbody').innerHTML = logHTML;
+
+        // 3. Tablas IPS
+        const ipHTML = ipsData.map(ip => `
+          <tr>
+            <td style="font-weight:600; color:#fff;">${ip.ip_address}</td>
+            <td>Detectado automáticamente</td>
+            <td>-</td>
+            <td class="badge-text riesgo-alto">ALTO</td>
+            <td class="badge-text action-bloqueada">BLOQUEADA</td>
+            <td style="color:var(--text-muted);">${ip.fecha_bloqueo?.substring(11, 16) ?? '–'}</td>
+          </tr>
+        `).join('') || `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);">Libre de amenazas</td></tr>`;
+        document.querySelector('#ipTable tbody').innerHTML = ipHTML;
+
+        // 4. Alertas (Cards)
+        const alertsHTML = alertsData.map(a => `
+          <div class="alert-card">
+            <header>
+              <div class="level" style="color: ${a.nivel_criticidad==='Critico'?'#fff':'var(--text-muted)'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${a.nivel_criticidad}</div>
+            </header>
+            <div class="msg">${a.mensaje}</div>
+            <div class="time">${a.fecha_generacion?.substring(11, 19)}</div>
+          </div>
+        `).join('') || `<div style="color:var(--text-muted); padding:32px; border:1px solid var(--border); box-sizing:border-box;">Sin alertas.</div>`;
+        document.getElementById('alertsList').innerHTML = alertsHTML;
+
+        // 5. Amenazas (Detección - agrupadas heurísticamente)
+        let threatCards = '';
+        for (let t of Object.keys(d.attacks_by_type || {})) {
+           // Tomamos el nombre del ataque y buscamos algún log que lo haya disparado
+           const sample = logsData.find(x => x.score_riesgo >= 70) || null;
+           threatCards += `
+           <div class="threat-card">
+             <div class="header"><span>${t.toUpperCase()}</span><span>BLOQUEADO</span></div>
+             <div class="code">${sample ? sample.endpoint : "Payload detectado internamente."}</div>
+           </div>`;
         }
-      } catch (e) { console.warn('Stats error', e); }
+        if(!threatCards) threatCards = `<div style="color:var(--text-muted); padding:32px; border:1px solid var(--border); box-sizing:border-box;">Sin detecciones recientes.</div>`;
+        document.getElementById('threatsList').innerHTML = threatCards;
+
+      } catch(e) {}
     }
 
-    // ── Logs (sentinel_waf: peticiones_log) ──────────────────────────────────
-    async function loadLogs() {
-      const ip = document.getElementById('filterIP').value.trim();
-      const accion = document.getElementById('filterAction').value;
-      let url = `${API}/logs/?limit=${LOGS_LIMIT}&skip=${_logsOffset}`;
-      if (ip) url += `&ip=${encodeURIComponent(ip)}`;
-      if (accion) url += `&accion=${accion}`;
-      try {
-        const r = await fetch(url, { headers: authGetHeaders() });
-        const rows = await r.json();
-        const tbody = document.querySelector('#logsTable tbody');
-        tbody.innerHTML = rows.length ? rows.map(l => {
-          const isBlock = l.accion_tomada === 'Bloqueada';
-          return `
-      <tr>
-        <td style="padding-left:32px;"><span style="color:var(--text-muted);font-variant-numeric:tabular-nums;">${l.fecha_hora?.replace('T', ' ').slice(0, 19) ?? '–'}</span></td>
-        <td><code>${l.ip_address}</code></td>
-        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="#" style="color:var(--primary); font-family:monospace; text-decoration:none;" title="${l.endpoint}">${l.endpoint}</a></td>
-        <td><span style="font-size:0.75rem; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; font-weight:600; color:var(--text-muted);">${l.metodo}</span></td>
-        <td><span class="action-badge ${isBlock ? 'action-block' : 'action-allow'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> ${l.accion_tomada ?? 'Permitida'}</span></td>
-        <td style="font-size:0.8rem; color:var(--text-muted);">${l.score_riesgo}</td>
-      </tr>`;
-        }).join('') : '<tr><td colspan="6" class="empty">No existen registros para estos criterios</td></tr>';
-        const info = document.getElementById('logsShowingInfo');
-        if (info) info.textContent = `Mostrando ${_logsOffset + 1} a ${_logsOffset + rows.length} peticiones`;
-      } catch (e) { toast('Error cargando registros', 'error'); }
-    }
-
-    function scoreColor(s) { return s >= 70 ? 'var(--danger)' : s >= 40 ? 'var(--warning)' : 'var(--success)'; }
-
-    function logsPage(dir) {
-      _logsOffset = Math.max(0, _logsOffset + dir * LOGS_LIMIT);
-      loadLogs();
-    }
-
-    async function clearLogs() {
-      if (!confirm('¿Purgar todo el historial de tráfico? Esta acción es irreversible.')) return;
-      try {
-        const r = await fetch(`${API}/logs/clear`, { method: 'DELETE', headers: authGetHeaders() });
-        const d = await r.json();
-        toast(`${d.deleted ?? 0} registros purgados`, 'success');
-        _logsOffset = 0; loadLogs(); loadStats();
-      } catch (e) { toast('Error purgando registros', 'error'); }
-    }
-
-    // ── Blocked IPs (sentinel_waf: ips_bloqueadas) ───────────────────────────
-    async function loadBlocked() {
-      try {
-        const r = await fetch(`${API}/blocked-ips/`, { headers: authGetHeaders() });
-        const rows = await r.json();
-        const tbody = document.querySelector('#blockedTable tbody');
-        tbody.innerHTML = rows.length ? rows.map(b => `
-      <tr>
-        <td style="padding-left:24px;"><code>${b.ip_address}</code></td>
-        <td style="font-size:0.85rem; font-weight:500;">${b.motivo ?? '–'}</td>
-        <td style="font-size:0.8rem;color:var(--text-muted);font-variant-numeric:tabular-nums;">${b.fecha_bloqueo?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
-        <td><span style="background:rgba(239,68,68,0.1); color:var(--danger); padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; border:1px solid rgba(239,68,68,0.3);">BLOQUEADO</span></td>
-        <td><button class="btn" style="padding: 4px 12px; font-size: 0.75rem; color:var(--text); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);" onclick="unblockIP('${b.ip_address}')">Remover</button></td>
-      </tr>`).join('') : '<tr><td colspan="5" class="empty">La lista de IP está limpia...</td></tr>';
-      } catch (e) { toast('Error leyendo listas de control', 'error'); }
-    }
-
-    async function blockIP() {
-      const ip = document.getElementById('newBlockIP').value.trim();
-      const motivo = document.getElementById('newBlockReason').value.trim();
-      if (!ip) { toast('Favor de ingresar una IP válida', 'error'); return; }
-      try {
-        await fetch(`${API}/blocked-ips/`, {
-          method: 'POST', headers: authHeaders(),
-          body: JSON.stringify({ ip_address: ip, motivo: motivo || 'Bloqueo Manual' })
-        });
-        document.getElementById('newBlockIP').value = '';
-        document.getElementById('newBlockReason').value = '';
-        toast(`Dirección IP ${ip} confinada`, 'success'); loadBlocked(); loadStats();
-      } catch (e) { toast('Error en el confinamiento de IP', 'error'); }
-    }
-
-    async function unblockIP(ip) {
-      try {
-        await fetch(`${API}/blocked-ips/${encodeURIComponent(ip)}`, { method: 'DELETE', headers: authGetHeaders() });
-        toast(`Acceso restaurado para IP ${ip}`, 'success'); loadBlocked(); loadStats();
-      } catch (e) { toast('Error restaurando acceso', 'error'); }
-    }
-
-    // ── Alerts (sentinel_waf: alertas) ───────────────────────────────────────
-    async function loadAlerts() {
-      const unreadOnly = document.getElementById('alertUnread').checked;
-      try {
-        const r = await fetch(`${API}/alerts/?unread_only=${unreadOnly}&limit=100`, { headers: authGetHeaders() });
-        const rows = await r.json();
-        const tbody = document.querySelector('#alertsTable tbody');
-        tbody.innerHTML = rows.length ? rows.map(a => {
-          const levelClass = a.nivel_criticidad === 'Critico' ? 'badge-critical' : a.nivel_criticidad === 'Advertencia' ? 'badge-media' : 'badge-baja';
-          return `
-      <tr style="${!a.revisada ? 'background:rgba(255,255,255,0.03);' : ''}">
-        <td><span class="badge ${levelClass}">${a.nivel_criticidad ?? 'Info'}</span></td>
-        <td style="font-size:0.85rem; font-weight: ${!a.revisada ? '600' : '400'}; color: ${!a.revisada ? '#fff' : 'var(--text-muted)'};">${a.mensaje ?? '–'}</td>
-        <td><code>Log #${a.id_log}</code></td>
-        <td style="font-size:0.8rem;color:var(--text-muted);">${a.fecha_generacion?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
-        <td style="text-align:center;">${a.revisada ? '<span style="color:var(--success); font-weight:600; font-size:0.75rem;">REVISADA</span>' : '<span style="color:var(--warning);font-weight:600; font-size:0.75rem;">PENDIENTE</span>'}</td>
-        <td>${!a.revisada ? `<button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.75rem;" onclick="markRead(${a.id_alerta})">Marcar</button>` : ''}</td>
-      </tr>`;
-        }).join('') : '<tr><td colspan="6" class="empty">El sistema no reporta alertas de seguridad</td></tr>';
-
-        // recent alerts on overview (show Critico ones)
-        const tbody2 = document.querySelector('#recentAlertsTable tbody');
-        const critical = rows.filter(a => a.nivel_criticidad === 'Critico').slice(0, 10);
-        tbody2.innerHTML = critical.length ? critical.map(a => `
-      <tr>
-        <td style="color:var(--text-muted);font-variant-numeric:tabular-nums;">${a.fecha_generacion?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
-        <td><code>Log #${a.id_log}</code></td>
-        <td style="font-weight:500;">${a.mensaje ?? '–'}</td>
-        <td><span class="badge badge-critical">${a.nivel_criticidad}</span></td>
-        <td><span class="action-badge action-block"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Bloqueado</span></td>
-        <td><button class="icon-btn" title="Ver Detalles"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button></td>
-      </tr>`).join('') : '<tr><td colspan="6" class="empty">No ha habido detecciones críticas</td></tr>';
-      } catch (e) { toast('Error descargando las alertas', 'error'); }
-    }
-
-    async function markRead(id) {
-      await fetch(`${API}/alerts/${id}/read`, { method: 'POST', headers: authGetHeaders() });
-      loadAlerts(); loadStats();
-    }
-
-    async function markAllRead() {
-      await fetch(`${API}/alerts/read-all`, { method: 'POST', headers: authGetHeaders() });
-      toast('Alertas marcadas como leídas', 'success'); loadAlerts(); loadStats();
-    }
-
-    async function clearAlerts() {
-      if (!confirm('¿Eliminar por completo el historial de notificaciones?')) return;
-      await fetch(`${API}/alerts/clear`, { method: 'DELETE', headers: authGetHeaders() });
-      toast('Historial de alertas vaciado', 'success'); loadAlerts(); loadStats();
-    }
-
-    // ── WAF Toggle ──────────────────────────────────────────────────────────
-    async function loadWafStatus() {
+    // Toggle real switch config
+    async function loadStatus() {
       try {
         const r = await fetch(`${API}/config/status`, { headers: authGetHeaders() });
         const d = await r.json();
-        const toggle = document.getElementById('wafToggle');
-        const text = document.getElementById('wafStatusText');
-        if (toggle) toggle.checked = d.waf_enabled;
-        if (text) {
-          text.textContent = d.waf_enabled ? 'WAF ACTIVO' : 'WAF INACTIVO';
-          text.style.color = d.waf_enabled ? 'var(--success)' : 'var(--danger)';
-        }
-      } catch (e) { console.warn('Waf status error', e); }
+        document.getElementById('wafToggle').checked = d.waf_enabled;
+        document.getElementById('topStatus').textContent = d.waf_enabled ? 'Activo' : 'Inactivo';
+        document.getElementById('topStatus').style.color = d.waf_enabled ? '#fff' : 'var(--text-muted)';
+      } catch(e) {}
     }
-
-    async function toggleWAFUI() {
-      const toggle = document.getElementById('wafToggle');
-      const newState = toggle.checked;
+    
+    async function toggleWAFServer() {
+      const sw = document.getElementById('wafToggle');
       try {
-        await fetch(`${API}/config/toggle`, {
-          method: 'POST',
-          headers: authHeaders(),
-          body: JSON.stringify({ enabled: newState })
+        await fetch(`${API}/config/toggle`, { 
+          method:'POST', 
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('waf_token')},
+          body: JSON.stringify({enabled: sw.checked}) 
         });
-        toast(newState ? 'WAF Activado' : 'WAF Desactivado', newState ? 'success' : 'error');
-        loadWafStatus();
-      } catch (e) {
-        toggle.checked = !newState; // Revert
-        toast('Error al cambiar el estado del WAF', 'error');
-      }
+        loadStatus();
+      } catch(e) { sw.checked = !sw.checked; }
     }
 
-    // ── Auto-refresh ─────────────────────────────────────────────────────────
-    function refreshAll() {
-      loadStats();
-      loadAlerts();
-      loadWafStatus();
-      
-      const activeNav = document.querySelector('nav a.active');
-      if (activeNav) {
-        if (activeNav.id.includes('Logs')) loadLogs();
-        if (activeNav.id.includes('Blocked') || activeNav.id.includes('IP')) loadBlocked();
-      }
-    }
-
-    // ── Init ─────────────────────────────────────────────────────────────────
-    loadWafStatus();
-    initCharts();
-    refreshAll();
-    setInterval(refreshAll, 5000);
+    // Loop
+    refreshData(); loadStatus();
+    setInterval(() => { refreshData(); loadStatus(); }, 5000);
   </script>
 </body>
-
 </html>
