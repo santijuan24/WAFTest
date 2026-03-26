@@ -153,7 +153,7 @@
     <div class="header-stats" style="align-items: center;">
       <span style="display:flex; align-items:center;">
          Estado: 
-         <label class="toggle-switch" style="margin: 0 8px 0 12px;"><input type="checkbox" id="wafToggleHeader" checked onchange="toggleWAFServer()"><span class="slider"></span></label>
+         <label class="toggle-switch" style="margin: 0 8px 0 12px;"><input type="checkbox" id="wafToggleHeader" checked onchange="toggleWAFServer(this.id)"><span class="slider"></span></label>
          <strong id="topStatus">Activo</strong>
       </span>
       <span>Reglas: <strong>SQLi, XSS, LFI</strong></span>
@@ -377,7 +377,7 @@
         </div>
         <div style="display:flex; justify-content:space-between; padding:12px 0; font-size:0.8rem; color:var(--text-muted); align-items:center;">
            <span>Estado del agente (Bypass Global)</span>
-           <label class="toggle-switch" style="margin:0;"><input type="checkbox" id="wafToggle" checked onchange="toggleWAFServer()"><span class="slider"></span></label>
+           <label class="toggle-switch" style="margin:0;"><input type="checkbox" id="wafToggle" checked onchange="toggleWAFServer(this.id)"><span class="slider"></span></label>
         </div>
       </div>
 
@@ -433,39 +433,39 @@
     window.showLogDetail = function(idx) {
        const l = window.allLogs[idx];
        if(!l) return;
-       document.getElementById('logDetailPanel').innerHTML = \`
+       document.getElementById('logDetailPanel').innerHTML = `
           <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">IP</div>
-          <div style="color:#fff; font-size:0.85rem; margin-bottom: 24px; font-weight:600;">\${l.ip_address}</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 24px; font-weight:600;">${l.ip_address}</div>
           
           <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">ENDPOINT</div>
-          <div style="color:#fff; font-size:0.85rem; font-family:monospace; margin-bottom: 24px;">\${l.endpoint}</div>
+          <div style="color:#fff; font-size:0.85rem; font-family:monospace; margin-bottom: 24px;">${l.endpoint}</div>
           
           <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">MÉTODO</div>
-          <div style="color:#fff; font-size:0.85rem; font-family:monospace; margin-bottom: 24px;">\${l.metodo}</div>
+          <div style="color:#fff; font-size:0.85rem; font-family:monospace; margin-bottom: 24px;">${l.metodo}</div>
           
           <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">RIESGO</div>
-          <div style="color:#fff; font-size:0.85rem; font-weight:600; margin-bottom: 24px;">\${mapRiesgo(l.score_riesgo)} (\${l.score_riesgo})</div>
+          <div style="color:#fff; font-size:0.85rem; font-weight:600; margin-bottom: 24px;">${mapRiesgo(l.score_riesgo)} (${l.score_riesgo})</div>
           
           <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">ACCIÓN</div>
-          <div style="color:#fff; font-size:0.85rem; margin-bottom: 32px;">\${l.accion_tomada === 'Bloqueada' ? 'Bloqueada' : l.accion_tomada === 'Alerta' ? 'Alerta' : 'Permitida'}</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 32px;">${l.accion_tomada === 'Bloqueada' ? 'Bloqueada' : l.accion_tomada === 'Alerta' ? 'Alerta' : 'Permitida'}</div>
           
           <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">HEADERS Y METADATOS</div>
           <div style="background:var(--bg); border:1px solid var(--border); padding:16px; margin-bottom:32px; font-family:monospace; font-size:0.75rem; color:var(--text-muted); word-break:break-all; border-radius:4px;">
-             User-Agent: \${l.user_agent || '-'}<br>
-             Host: \${l.ip_address}
+             User-Agent: ${l.user_agent || '-'}<br>
+             Host: ${l.ip_address}
           </div>
           
-          \${l.score_riesgo >= 40 ? \`<div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">RESULTADO</div><div style="background:var(--bg); border:1px solid var(--border); padding:16px; margin-bottom:16px; font-family:monospace; font-size:0.75rem; color:var(--text-muted); word-break:break-all; border-radius:4px; border-left: 3px solid #ef4444;">Solicitud bloqueada por posible detección de amenaza maliciosa.</div>\` : ''}
-       \`;
+          ${l.score_riesgo >= 40 ? `<div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">RESULTADO</div><div style="background:var(--bg); border:1px solid var(--border); padding:16px; margin-bottom:16px; font-family:monospace; font-size:0.75rem; color:var(--text-muted); word-break:break-all; border-radius:4px; border-left: 3px solid #ef4444;">Solicitud bloqueada por posible detección de amenaza maliciosa.</div>` : ''}
+       `;
     }
 
     async function refreshData() {
       try {
         const [statsRes, logsRes, alertsRes, ipsRes] = await Promise.all([
-           fetch(\`\${API}/stats/\`, { headers: authGetHeaders() }),
-           fetch(\`\${API}/logs/?limit=100\`, { headers: authGetHeaders() }),
-           fetch(\`\${API}/alerts/?limit=10\`, { headers: authGetHeaders() }),
-           fetch(\`\${API}/blocked-ips/\`, { headers: authGetHeaders() })
+           fetch(`${API}/stats/`, { headers: authGetHeaders() }),
+           fetch(`${API}/logs/?limit=100`, { headers: authGetHeaders() }),
+           fetch(`${API}/alerts/?limit=10`, { headers: authGetHeaders() }),
+           fetch(`${API}/blocked-ips/`, { headers: authGetHeaders() })
         ]);
 
         const d = await statsRes.json();
@@ -483,66 +483,66 @@
         document.getElementById('kIPs2').innerText = (ipsData.length ?? 0).toLocaleString();
 
         // 2. Tablas Logs
-        const overviewLogHTML = logsData.slice(0, 10).map(l => \`
+        const overviewLogHTML = logsData.slice(0, 10).map(l => `
           <tr>
-            <td style="color:var(--text-muted)">\${l.fecha_hora?.substring(11, 19) ?? '–'}</td>
-            <td style="font-weight:600; font-family:monospace; color:#fff;">\${l.ip_address}</td>
-            <td style="font-family:monospace; color:var(--text-muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">\${l.endpoint}</td>
-            <td class="badge-text" style="color:var(--text-muted);">\${l.metodo}</td>
-            <td class="badge-text \${riskClass(l.score_riesgo)}">\${mapRiesgo(l.score_riesgo)}</td>
-            <td class="badge-text \${actionClass(l.accion_tomada)}">\${l.accion_tomada === 'Bloqueada' ? 'BLOQUEADA' : l.accion_tomada === 'Alerta' ? 'ALERTA' : 'PERMITIDA'}</td>
+            <td style="color:var(--text-muted)">${l.fecha_hora?.substring(11, 19) ?? '–'}</td>
+            <td style="font-weight:600; font-family:monospace; color:#fff;">${l.ip_address}</td>
+            <td style="font-family:monospace; color:var(--text-muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${l.endpoint}</td>
+            <td class="badge-text" style="color:var(--text-muted);">${l.metodo}</td>
+            <td class="badge-text ${riskClass(l.score_riesgo)}">${mapRiesgo(l.score_riesgo)}</td>
+            <td class="badge-text ${actionClass(l.accion_tomada)}">${l.accion_tomada === 'Bloqueada' ? 'BLOQUEADA' : l.accion_tomada === 'Alerta' ? 'ALERTA' : 'PERMITIDA'}</td>
           </tr>
-        \`).join('') || \`<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);">Sin datos</td></tr>\`;
+        `).join('') || `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);">Sin datos</td></tr>`;
         document.querySelector('#overviewLogs tbody').innerHTML = overviewLogHTML;
         
         // Full Logs in "sec-logs"
-        const fullLogHTML = logsData.map((l, i) => \`
-          <tr class="clickable-row" onclick="showLogDetail(\${i})" style="cursor:pointer;">
-            <td style="color:var(--text-muted)">\${l.fecha_hora?.substring(11, 19) ?? '–'}</td>
-            <td style="font-weight:600; font-family:monospace; color:#fff;">\${l.ip_address}</td>
-            <td style="font-family:monospace; color:var(--text-muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">\${l.endpoint}</td>
-            <td class="badge-text" style="color:var(--text-muted);">\${l.metodo}</td>
-            <td class="badge-text \${riskClass(l.score_riesgo)}">\${mapRiesgo(l.score_riesgo)}</td>
-            <td class="badge-text \${actionClass(l.accion_tomada)}">\${l.accion_tomada === 'Bloqueada' ? 'BLOQUEADA' : l.accion_tomada === 'Alerta' ? 'ALERTA' : 'PERMITIDA'}</td>
+        const fullLogHTML = logsData.map((l, i) => `
+          <tr class="clickable-row" onclick="showLogDetail(${i})" style="cursor:pointer;">
+            <td style="color:var(--text-muted)">${l.fecha_hora?.substring(11, 19) ?? '–'}</td>
+            <td style="font-weight:600; font-family:monospace; color:#fff;">${l.ip_address}</td>
+            <td style="font-family:monospace; color:var(--text-muted); max-width:200px; overflow:hidden; text-overflow:ellipsis;">${l.endpoint}</td>
+            <td class="badge-text" style="color:var(--text-muted);">${l.metodo}</td>
+            <td class="badge-text ${riskClass(l.score_riesgo)}">${mapRiesgo(l.score_riesgo)}</td>
+            <td class="badge-text ${actionClass(l.accion_tomada)}">${l.accion_tomada === 'Bloqueada' ? 'BLOQUEADA' : l.accion_tomada === 'Alerta' ? 'ALERTA' : 'PERMITIDA'}</td>
           </tr>
-        \`).join('') || \`<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);">Sin datos</td></tr>\`;
+        `).join('') || `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);">Sin datos</td></tr>`;
         document.querySelector('#fullLogs tbody').innerHTML = fullLogHTML;
 
         // 3. Tablas IPS ... omit for brevity mapping is identical to before 
-        const ipHTML = ipsData.map(ip => \`
+        const ipHTML = ipsData.map(ip => `
           <tr>
-            <td style="font-weight:600; color:#fff;">\${ip.ip_address}</td>
+            <td style="font-weight:600; color:#fff;">${ip.ip_address}</td>
             <td>Detectado automáticamente</td>
             <td>-</td>
             <td class="badge-text riesgo-alto">ALTO</td>
             <td class="badge-text action-bloqueada">BLOQUEADA</td>
-            <td style="color:var(--text-muted);">\${ip.fecha_bloqueo?.substring(11, 16) ?? '–'}</td>
+            <td style="color:var(--text-muted);">${ip.fecha_bloqueo?.substring(11, 16) ?? '–'}</td>
           </tr>
-        \`).join('') || \`<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);">Libre de amenazas</td></tr>\`;
+        `).join('') || `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);">Libre de amenazas</td></tr>`;
         document.querySelector('#ipTable tbody').innerHTML = ipHTML;
 
         // 4. Alertas (Cards) ...
-        const alertsHTML = alertsData.map(a => \`
+        const alertsHTML = alertsData.map(a => `
           <div class="alert-card">
             <header>
-              <div class="level" style="color: \${a.nivel_criticidad==='Critico'?'#fff':'var(--text-muted)'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> \${a.nivel_criticidad}</div>
+              <div class="level" style="color: ${a.nivel_criticidad==='Critico'?'#fff':'var(--text-muted)'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${a.nivel_criticidad}</div>
             </header>
-            <div class="msg">\${a.mensaje}</div>
-            <div class="time">\${a.fecha_generacion?.substring(11, 19)}</div>
+            <div class="msg">${a.mensaje}</div>
+            <div class="time">${a.fecha_generacion?.substring(11, 19)}</div>
           </div>
-        \`).join('') || \`<div style="color:var(--text-muted); padding:32px; border:1px solid var(--border); box-sizing:border-box;">Sin alertas.</div>\`;
+        `).join('') || `<div style="color:var(--text-muted); padding:32px; border:1px solid var(--border); box-sizing:border-box;">Sin alertas.</div>`;
         document.getElementById('alertsList').innerHTML = alertsHTML;
 
         let threatCards = '';
         for (let t of Object.keys(d.attacks_by_type || {})) {
            const sample = logsData.find(x => x.score_riesgo >= 70) || null;
-           threatCards += \`
+           threatCards += `
            <div class="threat-card">
-             <div class="header"><span>\${t.toUpperCase()}</span><span>BLOQUEADO</span></div>
-             <div class="code">\${sample ? sample.endpoint : "Payload detectado internamente."}</div>
-           </div>\`;
+             <div class="header"><span>${t.toUpperCase()}</span><span>BLOQUEADO</span></div>
+             <div class="code">${sample ? sample.endpoint : "Payload detectado internamente."}</div>
+           </div>`;
         }
-        if(!threatCards) threatCards = \`<div style="color:var(--text-muted); padding:32px; border:1px solid var(--border); box-sizing:border-box;">Sin detecciones recientes.</div>\`;
+        if(!threatCards) threatCards = `<div style="color:var(--text-muted); padding:32px; border:1px solid var(--border); box-sizing:border-box;">Sin detecciones recientes.</div>`;
         document.getElementById('threatsList').innerHTML = threatCards;
 
       } catch(e) {}
@@ -551,7 +551,7 @@
     // Toggle real switch config
     async function loadStatus() {
       try {
-        const r = await fetch(\`\${API}/config/status\`, { headers: authGetHeaders() });
+        const r = await fetch(`${API}/config/status`, { headers: authGetHeaders() });
         const d = await r.json();
         document.getElementById('wafToggle').checked = d.waf_enabled;
         document.getElementById('wafToggleHeader').checked = d.waf_enabled;
@@ -560,11 +560,11 @@
       } catch(e) {}
     }
     
-    async function toggleWAFServer() {
-      // Tomar estado del switch modificado
-      const newStatus = event.target.checked;
+    async function toggleWAFServer(elementId) {
+      if(!elementId) return;
+      const newStatus = document.getElementById(elementId).checked;
       try {
-        await fetch(\`\${API}/config/toggle\`, { 
+        await fetch(`${API}/config/toggle`, { 
           method:'POST', 
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('waf_token')},
           body: JSON.stringify({enabled: newStatus}) 
@@ -572,6 +572,13 @@
         loadStatus();
       } catch(e) { loadStatus(); /* rollback on error */ }
     }
+
+    // Wiring filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+       btn.onclick = function() {
+           alert("Funciona UI de Filtros: Filtrando por " + this.innerText + " (Simulado para demostración)");
+       }
+    });
 
     // Loop
     refreshData(); loadStatus();

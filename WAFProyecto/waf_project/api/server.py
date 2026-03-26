@@ -24,8 +24,7 @@ class WafToggleState(BaseModel):
     enabled: bool
 
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+    pin: str
 
 app = FastAPI(title="WAF Dashboard API", docs_url="/api-docs")
 
@@ -50,7 +49,6 @@ def startup():
     init_db()
     print(f"[API] Dashboard & API running on port {API_PORT}")
 
-
 # ── API Routes ──
 app.include_router(logs.router,       prefix="/api")
 app.include_router(stats.router,      prefix="/api")
@@ -60,11 +58,10 @@ app.include_router(validate.router,   prefix="/api")
 
 @app.post("/api/auth/login")
 def login(creds: LoginRequest):
-    # Demostración del WAF: usuario fijo
-    if creds.username == "admin" and creds.password == "admin123":
+    if creds.pin == "123123":
         return {"token": "sentinel-auth-token-12345"}
     from fastapi import HTTPException
-    raise HTTPException(status_code=401, detail="Credenciales invalidas")
+    raise HTTPException(status_code=401, detail="Codigo invalido")
 
 @app.get("/api/config/status")
 def get_waf_status():
