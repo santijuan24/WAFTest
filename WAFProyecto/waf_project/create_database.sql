@@ -73,6 +73,28 @@ create table auditoria_sistema (
   primary key (id_auditoria)
 ) engine=innodb;
 
+-- Script para añadir la tabla de 'clientes' requerida por Sentinel Agent SDK
+CREATE TABLE IF NOT EXISTS clientes (
+    client_id VARCHAR(50) PRIMARY KEY,
+    api_key VARCHAR(100) NOT NULL UNIQUE,
+    nombre_empresa VARCHAR(150) NOT NULL,
+    target_url VARCHAR(255) DEFAULT NULL,
+    plan VARCHAR(50) DEFAULT 'basico',
+    activo BOOLEAN DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insertar un cliente de prueba (Demo Client)
+INSERT INTO clientes (client_id, api_key, nombre_empresa, target_url, plan)
+VALUES (
+    'demo-client-id-001',
+    'sk_test_sentinel_123456789',
+    'Escuela Demo SA de CV',
+    'http://localhost:3000',
+    'enterprise'
+) ON DUPLICATE KEY UPDATE activo=1;
+
+
 /* ============================================================ */
 /*  OBJETOS PROGRAMABLES – FUNCIONES                            */
 /* ============================================================ */
@@ -233,6 +255,35 @@ end//
 
 delimiter ;
 
+/* USUARIOS */
+/*  SEGURIDAD Y ROLES – CREACION DE USUARIOS                   */
+/* ============================================================ */
+
+/* usuario dba_admin: todos los privilegios */
+drop user if exists 'dba_admin'@'localhost';
+create user 'dba_admin'@'localhost' identified by 'Admin123';
+grant all privileges on sentinel_waf.* to 'dba_admin'@'localhost';
+
+/* usuario operador_waf: select, insert, update en tablas operativas */
+drop user if exists 'operador_waf'@'localhost';
+create user 'operador_waf'@'localhost' identified by 'Operador123';
+grant select, insert, update on sentinel_waf.peticiones_log  to 'operador_waf'@'localhost';
+grant select, insert, update on sentinel_waf.alertas          to 'operador_waf'@'localhost';
+grant select, insert, update on sentinel_waf.ips_bloqueadas   to 'operador_waf'@'localhost';
+
+/* usuario auditor_siem: solo lectura en todas las tablas y execute en sp_reporte_amenazas */
+drop user if exists 'auditor_siem'@'localhost';
+create user 'auditor_siem'@'localhost' identified by 'Auditor123';
+grant execute on procedure sentinel_waf.sp_reporte_amenazas to 'auditor_siem'@'localhost';
+
+/* usuario proxy_app: solo insert en peticiones_log y execute en sp_procesar_peticion */
+drop user if exists 'proxy_app'@'localhost';
+create user 'proxy_app'@'localhost' identified by 'Proxy123';
+grant execute on procedure sentinel_waf.sp_procesar_peticion to 'proxy_app'@'localhost';
+
+flush privileges;
+
+
 /* ============================================================ */
 /*  DML – DATOS DE PRUEBA                                      */
 /* ============================================================ */
@@ -245,3 +296,11 @@ insert into tipos_ataque (nombre, descripcion, nivel_riesgo_base) values
 /* ============================================================ */
 /*  fin del script sentinel_waf                                 */
 /* ============================================================ */
+
+use sentinel_waf;
+select * from clientes;
+
+
+
+
+
