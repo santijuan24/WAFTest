@@ -8,15 +8,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg: #0b1120;
-      --bg-panel: #0f172a;
-      --bg-card: #141e33;
-      --border: #1e293b;
-      --border-hover: #334155;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
+      --bg: #09090b;
+      --bg-panel: #18181b;
+      --bg-card: #18181b;
+      --border: #27272a;
+      --border-hover: #3f3f46;
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
       --danger: #ef4444;
       --danger-hover: #dc2626;
       --danger-bg: rgba(239, 68, 68, 0.15);
@@ -884,8 +884,8 @@
         <td style="font-size:0.85rem; font-weight: ${!a.revisada ? '600' : '400'}; color: ${!a.revisada ? '#fff' : 'var(--text-muted)'};">${a.mensaje ?? '–'}</td>
         <td><code>Log #${a.id_log}</code></td>
         <td style="font-size:0.8rem;color:var(--text-muted);">${a.fecha_generacion?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
-        <td style="text-align:center;">${a.revisada ? '<span style="color:var(--success)">✔</span>' : '<span style="color:var(--primary);font-size:1.2rem;">●</span>'}</td>
-        <td>${!a.revisada ? `<button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.75rem;" onclick="markRead(${a.id_alerta})">Entendido</button>` : ''}</td>
+        <td style="text-align:center;">${a.revisada ? '<span style="color:var(--success); font-weight:600; font-size:0.75rem;">REVISADA</span>' : '<span style="color:var(--warning);font-weight:600; font-size:0.75rem;">PENDIENTE</span>'}</td>
+        <td>${!a.revisada ? `<button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.75rem;" onclick="markRead(${a.id_alerta})">Marcar</button>` : ''}</td>
       </tr>`;
         }).join('') : '<tr><td colspan="6" class="empty">El sistema no reporta alertas de seguridad</td></tr>';
 

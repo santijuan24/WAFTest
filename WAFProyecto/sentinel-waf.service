@@ -1,0 +1,23 @@
+[Unit]
+Description=Sentinel WAF and Dashboard Service
+After=network.target mysql.service
+
+[Service]
+# Asegúrate de cambiar 'admin' y la ruta según tu usuario en EC2
+User=admin
+WorkingDirectory=/home/admin/ProyectoI/WAF/WAFTest/WAFProyecto
+# Ajusta tus credenciales de Base de Datos aquí permanentemente
+Environment="DB_HOST=localhost"
+Environment="DB_PORT=3306"
+Environment="DB_USER=root"
+Environment="DB_PASSWORD=YOUR_DB_PASSWORD_HERE"
+Environment="DB_NAME=sentinel_waf"
+
+# Ejecuta el script envolvente (run.py all) desde el entorno virtual
+ExecStart=/home/admin/ProyectoI/WAF/WAFTest/WAFProyecto/venv/bin/python run.py all
+
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
