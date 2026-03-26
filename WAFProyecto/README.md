@@ -16,6 +16,7 @@ Un sistema de demostración completo de Web Application Firewall (WAF) con capac
 - MySQL 5.7+ o MariaDB
 - Git
 
+
 ## 🛠 Instalación
 
 ### 1. Clonar el repositorio
