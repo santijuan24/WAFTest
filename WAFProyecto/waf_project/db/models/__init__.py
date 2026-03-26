@@ -5,5 +5,6 @@ from .request_log  import PeticionLog
 from .blocked_ip   import IPBloqueada
 from .alert        import Alerta
 from .auditoria    import AuditoriaSistema
+from .cliente      import Cliente
 
-__all__ = ["TipoAtaque", "PeticionLog", "IPBloqueada", "Alerta", "AuditoriaSistema"]
+__all__ = ["TipoAtaque", "PeticionLog", "IPBloqueada", "Alerta", "AuditoriaSistema", "Cliente"]
