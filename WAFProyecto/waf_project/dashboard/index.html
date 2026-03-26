@@ -320,27 +320,9 @@
             </table>
           </div>
         </div>
-        <div>
+        <div id="ipDetailPanel">
           <div class="section-title" style="margin-top:0;">Detalle de IP</div>
-          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">IP</div>
-          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px; font-weight:600;">203.0.113.42</div>
-          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">PAÍS</div>
-          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px;">Estados Unidos</div>
-          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">ESTADO</div>
-          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px;">Bloqueada</div>
-          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">NIVEL DE RIESGO</div>
-          <div style="color:#fff; font-size:0.85rem; margin-bottom: 32px; font-weight:600;">ALTO</div>
-          
-          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">ACTIVIDAD</div>
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.75rem;"><span style="color:var(--text-muted)">Solicitudes totales:</span><span style="color:#fff">145</span></div>
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.75rem;"><span style="color:var(--text-muted)">Intentos bloqueados:</span><span style="color:#fff">32</span></div>
-          <div style="display:flex; justify-content:space-between; margin-bottom:32px; font-size:0.75rem;"><span style="color:var(--text-muted)">Alertas generadas:</span><span style="color:#fff">8</span></div>
-
-          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">PATRONES DETECTADOS</div>
-          <div style="font-size:0.75rem; color:#fff; line-height:1.8; margin-bottom:32px;">• SQL Injection<br>• XSS<br>• Intentos repetidos de login</div>
-
-          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">ACCIÓN</div>
-          <button style="width:100%; background:transparent; color:#fff; border:1px solid var(--border); padding:8px; font-size:0.75rem; cursor:pointer;">Desbloquear IP</button>
+          <div style="color:var(--text-muted); font-size:0.8rem;">Selecciona una IP en la tabla para ver el detalle y gestionarla.</div>
         </div>
       </div>
     </div>
@@ -377,7 +359,7 @@
         </div>
         <div style="display:flex; justify-content:space-between; padding:12px 0; font-size:0.8rem; color:var(--text-muted); align-items:center;">
            <span>Estado del agente (Bypass Global)</span>
-           <label class="toggle-switch" style="margin:0;"><input type="checkbox" id="wafToggle" checked onchange="toggleWAFServer(this.id)"><span class="slider"></span></label>
+           <span style="color:#fff;">Protección activa por defecto</span>
         </div>
       </div>
 
@@ -390,8 +372,32 @@
           <span>Validar parámetros</span> <label class="toggle-switch" style="margin:0;"><input type="checkbox" checked><span class="slider"></span></label>
         </div>
       </div>
+
+      <div class="section-title">Control del sistema</div>
+      <div class="table-wrap" style="padding: 16px 24px;">
+        <div style="padding:12px 0;">
+          <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Estado</div>
+          <div style="color:#fff; font-size:0.9rem; font-weight:600; margin-bottom: 24px;" id="sysStateLabel">Protección activa</div>
+          <button id="btnToggleProtect" style="background:transparent; color:var(--text-muted); border:1px solid var(--border); padding:8px 16px; font-size:0.75rem; cursor:pointer;" onclick="openDisableModal()">Desactivar protección</button>
+        </div>
+      </div>
     </div>
   </main>
+
+  <!-- MODAL DESACTIVAR -->
+  <div id="disableModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:999; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-card); border:1px solid var(--border); width:400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <div style="padding:20px 24px; border-bottom:1px solid var(--border); font-size:1.1rem; font-weight:600;">Desactivar protección</div>
+      <div style="padding:24px;">
+        <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.5; margin-bottom:24px;">Esta acción dejará tu aplicación sin protección frente a amenazas.<br><br>Escribe <strong>DESACTIVAR</strong> para confirmar.</div>
+        <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">CONFIRMACIÓN</div>
+        <input type="text" id="confirmInput" placeholder="DESACTIVAR" style="width:100%; background:var(--bg); border:1px solid var(--border); color:#fff; padding:12px; font-size:0.8rem; margin-bottom:16px; outline:none;" autocomplete="off">
+        <button id="btnConfirmDisable" style="width:100%; background:#666; color:#000; border:none; padding:12px; font-size:0.8rem; font-weight:600; cursor:pointer; margin-bottom:16px;" onclick="confirmDisable()">Confirmar desactivación</button>
+        <div style="font-size:0.65rem; color:var(--text-muted); text-align:center; margin-bottom:16px;">Se recomienda activar nuevamente la protección lo antes posible.</div>
+        <button style="width:100%; background:transparent; color:var(--text-muted); border:1px solid var(--border); padding:10px; font-size:0.8rem; cursor:pointer;" onclick="closeDisableModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const API = '/api';
@@ -450,12 +456,55 @@
           <div style="color:#fff; font-size:0.85rem; margin-bottom: 32px;">${l.accion_tomada === 'Bloqueada' ? 'Bloqueada' : l.accion_tomada === 'Alerta' ? 'Alerta' : 'Permitida'}</div>
           
           <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">HEADERS Y METADATOS</div>
-          <div style="background:var(--bg); border:1px solid var(--border); padding:16px; margin-bottom:32px; font-family:monospace; font-size:0.75rem; color:var(--text-muted); word-break:break-all; border-radius:4px;">
+          <div style="background:var(--bg); border:1px solid var(--border); padding:16px; margin-bottom:16px; font-family:monospace; font-size:0.75rem; color:var(--text-muted); word-break:break-all; border-radius:4px;">
              User-Agent: ${l.user_agent || '-'}<br>
              Host: ${l.ip_address}
           </div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">CUERPO / PAYLOAD</div>
+          <div style="background:var(--bg); border:1px solid var(--border); padding:16px; margin-bottom:32px; font-family:monospace; font-size:0.75rem; color:var(--text-muted); word-break:break-all; border-radius:4px;">
+             ${l.payload || '{"mensaje": "Cuerpo de solicitud vacío o no registrado por el agente."}'}
+          </div>
           
           ${l.score_riesgo >= 40 ? `<div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">RESULTADO</div><div style="background:var(--bg); border:1px solid var(--border); padding:16px; margin-bottom:16px; font-family:monospace; font-size:0.75rem; color:var(--text-muted); word-break:break-all; border-radius:4px; border-left: 3px solid #ef4444;">Solicitud bloqueada por posible detección de amenaza maliciosa.</div>` : ''}
+       `;
+    }
+
+    const mc = ['Estados Unidos', 'Rusia', 'China', 'Brasil', 'Alemania', 'Corea del Sur', 'Japón', 'México'];
+    function getMockCountry(ip) {
+      let sum = 0; for(let i=0; i<ip.length; i++) sum += ip.charCodeAt(i);
+      return mc[sum % mc.length];
+    }
+
+    window.unblockIp = async function(ip) {
+      if(!confirm("¿Estás seguro de desbloquear la IP " + ip + "?")) return;
+      try {
+        await fetch(`${API}/blocked-ips/${ip}`, { method: 'DELETE', headers: authGetHeaders() });
+        refreshData();
+        document.getElementById('ipDetailPanel').innerHTML = '<div class="section-title" style="margin-top:0;">Detalle de IP</div><div style="color:var(--text-muted); font-size:0.8rem;">IP desbloqueada exitosamente.</div>';
+      } catch(e) { alert("Error al desbloquear IP."); }
+    }
+
+    window.showIpDetail = function(idx) {
+       const ip = window.allIps[idx];
+       if(!ip) return;
+       const pais = getMockCountry(ip.ip_address);
+       document.getElementById('ipDetailPanel').innerHTML = `
+          <div class="section-title" style="margin-top:0;">Detalle de IP</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">IP</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px; font-weight:600;">${ip.ip_address}</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">PAÍS (ESTIMADO)</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px;">${pais}</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">ESTADO</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 16px;">${ip.activa ? 'Bloqueada' : 'Permitida'}</div>
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">NIVEL DE RIESGO</div>
+          <div style="color:#fff; font-size:0.85rem; margin-bottom: 32px; font-weight:600;">ALTO</div>
+          
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">ACTIVIDAD RECIENTE</div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.75rem;"><span style="color:var(--text-muted)">Fecha de bloqueo:</span><span style="color:#fff">${(ip.fecha_bloqueo || '').replace('T', ' ')}</span></div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:32px; font-size:0.75rem;"><span style="color:var(--text-muted)">Motivo:</span><span style="color:#fff">${ip.motivo || 'Detección automática de amenazas'}</span></div>
+
+          <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">ACCIÓN</div>
+          <button style="width:100%; background:transparent; color:#fff; border:1px solid var(--border); padding:8px; font-size:0.75rem; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'" onclick="unblockIp('${ip.ip_address}')">Desbloquear IP</button>
        `;
     }
 
@@ -508,12 +557,13 @@
         `).join('') || `<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);">Sin datos</td></tr>`;
         document.querySelector('#fullLogs tbody').innerHTML = fullLogHTML;
 
-        // 3. Tablas IPS ... omit for brevity mapping is identical to before 
-        const ipHTML = ipsData.map(ip => `
-          <tr>
+        // 3. Tablas IPS ...
+        window.allIps = ipsData;
+        const ipHTML = ipsData.map((ip, i) => `
+          <tr class="clickable-row" onclick="showIpDetail(${i})" style="cursor:pointer;">
             <td style="font-weight:600; color:#fff;">${ip.ip_address}</td>
+            <td>${getMockCountry(ip.ip_address)}</td>
             <td>Detectado automáticamente</td>
-            <td>-</td>
             <td class="badge-text riesgo-alto">ALTO</td>
             <td class="badge-text action-bloqueada">BLOQUEADA</td>
             <td style="color:var(--text-muted);">${ip.fecha_bloqueo?.substring(11, 16) ?? '–'}</td>
@@ -553,24 +603,60 @@
       try {
         const r = await fetch(`${API}/config/status`, { headers: authGetHeaders() });
         const d = await r.json();
-        document.getElementById('wafToggle').checked = d.waf_enabled;
-        document.getElementById('wafToggleHeader').checked = d.waf_enabled;
-        document.getElementById('topStatus').textContent = d.waf_enabled ? 'Activo' : 'Inactivo';
-        document.getElementById('topStatus').style.color = d.waf_enabled ? '#fff' : 'var(--text-muted)';
+        const state = d.waf_enabled;
+        if(document.getElementById('wafToggle')) document.getElementById('wafToggle').checked = state;
+        if(document.getElementById('wafToggleHeader')) document.getElementById('wafToggleHeader').checked = state;
+        document.getElementById('topStatus').textContent = state ? 'Activo' : 'Inactivo';
+        document.getElementById('topStatus').style.color = state ? '#fff' : 'var(--text-muted)';
+        
+        const sysLabel = document.getElementById('sysStateLabel');
+        const sysBtn = document.getElementById('btnToggleProtect');
+        if(sysLabel && sysBtn) {
+           sysLabel.textContent = state ? 'Protección activa' : 'Protección inactiva';
+           sysLabel.style.color = state ? '#fff' : '#ef4444';
+           sysBtn.textContent = state ? 'Desactivar protección' : 'Activar protección';
+           sysBtn.style.color = state ? 'var(--text-muted)' : '#fff';
+        }
       } catch(e) {}
     }
     
-    async function toggleWAFServer(elementId) {
-      if(!elementId) return;
-      const newStatus = document.getElementById(elementId).checked;
+    async function toggleWAFServer(desiredState) {
+      if(typeof desiredState !== 'boolean') {
+         if(desiredState && desiredState.target) desiredState = desiredState.target.checked;
+         else if(typeof desiredState === 'string') desiredState = document.getElementById(desiredState).checked;
+      }
       try {
         await fetch(`${API}/config/toggle`, { 
           method:'POST', 
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('waf_token')},
-          body: JSON.stringify({enabled: newStatus}) 
+          body: JSON.stringify({enabled: desiredState}) 
         });
         loadStatus();
       } catch(e) { loadStatus(); /* rollback on error */ }
+    }
+
+    // Modal Control
+    function openDisableModal() {
+      const state = document.getElementById('wafToggleHeader').checked;
+      if(!state) {
+         toggleWAFServer(true); // already disabled, just enable immediately
+      } else {
+         document.getElementById('confirmInput').value = '';
+         document.getElementById('disableModal').style.display = 'flex';
+      }
+    }
+    
+    function closeDisableModal() {
+      document.getElementById('disableModal').style.display = 'none';
+    }
+    
+    function confirmDisable() {
+      if(document.getElementById('confirmInput').value === 'DESACTIVAR') {
+        closeDisableModal();
+        toggleWAFServer(false);
+      } else {
+        alert("Debes escribir DESACTIVAR para confirmar.");
+      }
     }
 
     // Wiring filter buttons
