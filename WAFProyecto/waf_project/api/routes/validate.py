@@ -3,8 +3,9 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
 from db.connection import get_db, call_sp_procesar_peticion
-from core.detection.scoring import evaluate
+from core.detection.scoring import evaluate, ScoringResult
 from config import ATTACK_TYPE_MAP, is_waf_enabled
+from db.models.cliente import Cliente
 
 router = APIRouter(tags=["Agent SDK"])
 
@@ -19,10 +20,13 @@ class ValidateRequest(BaseModel):
 
 @router.post("/validate")
 def validate_agent_request(req: ValidateRequest, db=Depends(get_db)):
-    # 1. TODO: Autenticación del Cliente (Validar client_id + api_key en tabla `clientes`)
-    # Por ahora (Fase 1), daremos por válido siempre que no vengan vacíos.
+    # 1. Autenticación del Cliente (Validar client_id + api_key en tabla `clientes`)
     if not req.client_id or not req.api_key:
         raise HTTPException(status_code=401, detail="Missing Client Credentials")
+        
+    cliente = db.query(Cliente).filter(Cliente.client_id == req.client_id, Cliente.api_key == req.api_key, Cliente.activo == True).first()
+    if not cliente:
+        raise HTTPException(status_code=401, detail="Invalid or Inactive Client Credentials")
 
     # 2. Evaluar Risk Score (Si el WAF no está bypasseado globalmente)
     if is_waf_enabled():

@@ -33,7 +33,7 @@ def init_db():
     Importa modelos para que SQLAlchemy los registre.
     Las tablas ya fueron creadas por el script create_database.sql.
     """
-    from db.models import TipoAtaque, PeticionLog, IPBloqueada, Alerta, AuditoriaSistema  # noqa: F401
+    from db.models import TipoAtaque, PeticionLog, IPBloqueada, Alerta, AuditoriaSistema, Cliente  # noqa: F401
 
 
 def call_sp_procesar_peticion(db, ip, metodo, endpoint, user_agent, score, id_ataque):
