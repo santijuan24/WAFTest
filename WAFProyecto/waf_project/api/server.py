@@ -17,9 +17,15 @@ from db.connection import init_db
 from api.routes import logs, stats, blocked_ips, alerts
 from config import API_PORT, is_waf_enabled, set_waf_enabled
 from pydantic import BaseModel
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 class WafToggleState(BaseModel):
     enabled: bool
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 app = FastAPI(title="WAF Dashboard API", docs_url="/api-docs")
 
@@ -30,6 +36,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/") and not path.startswith("/api/auth/"):
+        token = request.headers.get("Authorization")
+        if not token or token != "Bearer sentinel-auth-token-12345":
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    return await call_next(request)
 
 @app.on_event("startup")
 def startup():
@@ -42,6 +56,14 @@ app.include_router(logs.router,       prefix="/api")
 app.include_router(stats.router,      prefix="/api")
 app.include_router(blocked_ips.router, prefix="/api")
 app.include_router(alerts.router,     prefix="/api")
+
+@app.post("/api/auth/login")
+def login(creds: LoginRequest):
+    # Demostración del WAF: usuario fijo
+    if creds.username == "admin" and creds.password == "admin123":
+        return {"token": "sentinel-auth-token-12345"}
+    from fastapi import HTTPException
+    raise HTTPException(status_code=401, detail="Credenciales invalidas")
 
 @app.get("/api/config/status")
 def get_waf_status():

@@ -270,6 +270,11 @@
     input:checked + .slider { background-color: var(--success); }
     input:checked + .slider:before { transform: translateX(18px); }
   </style>
+  <script>
+    if (!localStorage.getItem('waf_token')) {
+      window.location.href = 'login.html';
+    }
+  </script>
 </head>
 
 <body>
@@ -805,10 +810,29 @@
     const LOGS_LIMIT = 50;
 
     function authHeaders() {
-        return { 'Content-Type': 'application/json' };
+        return { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('waf_token')
+        };
     }
-    function authGetHeaders() { return {}; }
-    function logout() { toast('Sesión cerrada (simulado)', 'info'); }
+    function authGetHeaders() { 
+        return {
+          'Authorization': 'Bearer ' + localStorage.getItem('waf_token')
+        };
+    }
+    function logout() { 
+        localStorage.removeItem('waf_token');
+        window.location.href = 'login.html';
+    }
+
+    const _originalFetch = window.fetch;
+    window.fetch = async function() {
+      try {
+        const response = await _originalFetch.apply(this, arguments);
+        if (response.status === 401 && !arguments[0].includes('/login')) logout();
+        return response;
+      } catch(e) { throw e; }
+    };
 
     // ── Charts ──────────────────────────────────────────────────────────────
     let chartTypes = null, chartAction = null;
