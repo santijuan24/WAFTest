@@ -26,7 +26,19 @@ BACKEND_PORT     = int(os.environ.get("BACKEND_PORT", "3000"))
 BACKEND_URL      = os.environ.get("BACKEND_URL", f"http://localhost:{BACKEND_PORT}")
 
 # ── Control del WAF ──────────────────────────────────────────────────────────
-WAF_ENABLED = os.environ.get("WAF_ENABLED", "true").lower() == "true"
+def is_waf_enabled() -> bool:
+    flag_file = os.path.join(os.path.dirname(__file__), ".waf_disabled")
+    if os.path.exists(flag_file):
+        return False
+    return os.environ.get("WAF_ENABLED", "true").lower() == "true"
+
+def set_waf_enabled(enabled: bool):
+    flag_file = os.path.join(os.path.dirname(__file__), ".waf_disabled")
+    if enabled and os.path.exists(flag_file):
+        os.remove(flag_file)
+    elif not enabled and not os.path.exists(flag_file):
+        open(flag_file, 'a').close()
+
 
 # ── Umbrales de riesgo (alineados con fn_evaluar_criticidad) ─────────────────
 SCORE_ALLOW = 40    # score < 40  → Permitida

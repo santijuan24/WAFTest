@@ -325,10 +325,14 @@
   <!-- Header -->
   <header>
     <h1 id="headerTitle">Panel de Control</h1>
-    <!-- Hidden legacy WAF toggle elements to keep JS happy -->
-    <span id="wafBadge" class="waf-badge badge-on" style="display:none">Estado WAF: ACTIVO</span>
-    <button id="toggleBtn" class="toggle-btn disabling" onclick="toggleWAF()" style="display:none">Desactivar WAF</button>
-    <span style="font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; display:none;" id="refreshInfo">Auto-recarga: 5s</span>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span id="wafStatusText" style="font-size:0.85rem; font-weight:600; color:var(--success);">WAF ACTIVO</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="wafToggle" checked onchange="toggleWAFUI()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
     
     <div class="header-actions">
       <button class="icon-btn">
@@ -1005,13 +1009,47 @@
       toast('Historial de alertas vaciado', 'success'); loadAlerts(); loadStats();
     }
 
+    // ── WAF Toggle ──────────────────────────────────────────────────────────
+    async function loadWafStatus() {
+      try {
+        const r = await fetch(`${API}/config/status`, { headers: authGetHeaders() });
+        const d = await r.json();
+        const toggle = document.getElementById('wafToggle');
+        const text = document.getElementById('wafStatusText');
+        if (toggle) toggle.checked = d.waf_enabled;
+        if (text) {
+          text.textContent = d.waf_enabled ? 'WAF ACTIVO' : 'WAF INACTIVO';
+          text.style.color = d.waf_enabled ? 'var(--success)' : 'var(--danger)';
+        }
+      } catch (e) { console.warn('Waf status error', e); }
+    }
+
+    async function toggleWAFUI() {
+      const toggle = document.getElementById('wafToggle');
+      const newState = toggle.checked;
+      try {
+        await fetch(`${API}/config/toggle`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ enabled: newState })
+        });
+        toast(newState ? 'WAF Activado' : 'WAF Desactivado', newState ? 'success' : 'error');
+        loadWafStatus();
+      } catch (e) {
+        toggle.checked = !newState; // Revert
+        toast('Error al cambiar el estado del WAF', 'error');
+      }
+    }
+
     // ── Auto-refresh ─────────────────────────────────────────────────────────
     function refreshAll() {
       loadStats();
       loadAlerts();
+      loadWafStatus();
     }
 
     // ── Init ─────────────────────────────────────────────────────────────────
+    loadWafStatus();
     initCharts();
     refreshAll();
     setInterval(refreshAll, 5000);

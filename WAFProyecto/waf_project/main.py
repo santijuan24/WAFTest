@@ -22,7 +22,7 @@ from core.detection.scoring import evaluate
 
 from core.proxy.handler import forward
 
-from config import WAF_PROXY_PORT, WAF_ENABLED, ATTACK_TYPE_MAP
+from config import WAF_PROXY_PORT, is_waf_enabled, ATTACK_TYPE_MAP
 
 app = FastAPI(title="WAF Proxy Engine", docs_url=None)
 
@@ -31,7 +31,7 @@ app = FastAPI(title="WAF Proxy Engine", docs_url=None)
 def startup():
     init_db()
     print(f"[WAF Proxy] Listening on port {WAF_PROXY_PORT}")
-    print(f"[WAF Proxy] WAF enabled: {WAF_ENABLED}")
+    print(f"[WAF Proxy] WAF enabled: {is_waf_enabled()}")
     print(f"[WAF Proxy] Forwarding clean requests to target application")
 
 
@@ -89,7 +89,7 @@ async def proxy(full_path: str, request: Request):
         meta = await RequestAnalyzer.extract(request)
 
         # Blocked IP check
-        if WAF_ENABLED and _is_blocked(meta["ip_address"], db):
+        if is_waf_enabled() and _is_blocked(meta["ip_address"], db):
             _log_request(
                 db, meta,
                 type("R", (), {"score": 100, "action": "block", "level": "blocked",
@@ -99,14 +99,14 @@ async def proxy(full_path: str, request: Request):
             return JSONResponse(status_code=403, content={"error": "Acceso denegado", "reason": "IP bloqueada"})
 
         # Score the request
-        if WAF_ENABLED:
+        if is_waf_enabled():
             result = evaluate(meta["payload"])
         else:
             result = type("R", (), {"score": 0.0, "action": "allow", "level": "clean",
                                     "attack_type": None, "rule_hits": []})()
 
         # Block if threshold exceeded
-        if WAF_ENABLED and result.action == "block":
+        if is_waf_enabled() and result.action == "block":
             _log_request(db, meta, result, 403)
             return JSONResponse(
                 status_code=403,

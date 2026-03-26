@@ -15,7 +15,11 @@ import uvicorn
 
 from db.connection import init_db
 from api.routes import logs, stats, blocked_ips, alerts
-from config import API_PORT
+from config import API_PORT, is_waf_enabled, set_waf_enabled
+from pydantic import BaseModel
+
+class WafToggleState(BaseModel):
+    enabled: bool
 
 app = FastAPI(title="WAF Dashboard API", docs_url="/api-docs")
 
@@ -38,6 +42,16 @@ app.include_router(logs.router,       prefix="/api")
 app.include_router(stats.router,      prefix="/api")
 app.include_router(blocked_ips.router, prefix="/api")
 app.include_router(alerts.router,     prefix="/api")
+
+@app.get("/api/config/status")
+def get_waf_status():
+    return {"waf_enabled": is_waf_enabled()}
+
+@app.post("/api/config/toggle")
+def toggle_waf_endpoint(state: WafToggleState):
+    set_waf_enabled(state.enabled)
+    return {"status": "success", "waf_enabled": state.enabled}
+
 
 # ── Static Dashboard ──
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
