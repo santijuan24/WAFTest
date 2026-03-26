@@ -26,18 +26,32 @@ BACKEND_PORT     = int(os.environ.get("BACKEND_PORT", "3000"))
 BACKEND_URL      = os.environ.get("BACKEND_URL", f"http://localhost:{BACKEND_PORT}")
 
 # ── Control del WAF ──────────────────────────────────────────────────────────
+import tempfile
+
+def get_waf_flag_path():
+    # Usamos el directorio temporal del sistema operativo (/tmp en Linux) 
+    # para evitar PermissionError (error 500) cuando la carpeta de AWS 
+    # es modificada remotamente por root.
+    return os.path.join(tempfile.gettempdir(), ".sentinel_waf_disabled")
+
 def is_waf_enabled() -> bool:
-    flag_file = os.path.join(os.path.dirname(__file__), ".waf_disabled")
+    flag_file = get_waf_flag_path()
     if os.path.exists(flag_file):
         return False
     return os.environ.get("WAF_ENABLED", "true").lower() == "true"
 
 def set_waf_enabled(enabled: bool):
-    flag_file = os.path.join(os.path.dirname(__file__), ".waf_disabled")
+    flag_file = get_waf_flag_path()
     if enabled and os.path.exists(flag_file):
-        os.remove(flag_file)
+        try:
+            os.remove(flag_file)
+        except OSError:
+            pass
     elif not enabled and not os.path.exists(flag_file):
-        open(flag_file, 'a').close()
+        try:
+            open(flag_file, 'a').close()
+        except OSError:
+            pass
 
 
 # ── Umbrales de riesgo (alineados con fn_evaluar_criticidad) ─────────────────
