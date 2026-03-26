@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
+      color-scheme: dark;
       --bg: #09090b;
       --bg-panel: #18181b;
       --bg-card: #18181b;
@@ -237,10 +238,10 @@
       display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
     }
     .filters input, .filters select {
-      background: var(--bg); border: 1px solid var(--border); color: var(--text);
-      padding: 8px 14px; border-radius: 6px; font-size: 0.8rem; outline: none;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text);
+      padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; outline: none; transition: 0.2s;
     }
-    .filters input:focus, .filters select:focus { border-color: var(--primary); }
+    .filters input:focus, .filters select:focus { border-color: var(--primary); background: rgba(255,255,255,0.06); }
 
     .btn {
       background: var(--primary); color: #fff; border: none; padding: 8px 16px;
@@ -957,6 +958,12 @@
       loadStats();
       loadAlerts();
       loadWafStatus();
+      
+      const activeNav = document.querySelector('nav a.active');
+      if (activeNav) {
+        if (activeNav.id.includes('Logs')) loadLogs();
+        if (activeNav.id.includes('Blocked') || activeNav.id.includes('IP')) loadBlocked();
+      }
     }
 
     // ── Init ─────────────────────────────────────────────────────────────────
