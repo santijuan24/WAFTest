@@ -7,7 +7,6 @@
 /*              triggers y control de acceso por roles.         */
 /* ============================================================ */
 
-drop database if exists sentinel_waf;
 create database sentinel_waf;
 use sentinel_waf;
 
@@ -16,7 +15,6 @@ use sentinel_waf;
 /* ============================================================ */
 
 /* tabla de tipos de ataque (catalogo normalizado) */
-drop table if exists tipos_ataque;
 create table tipos_ataque (
   id_ataque    int          not null auto_increment,
   nombre       varchar(50)  not null,
@@ -26,7 +24,6 @@ create table tipos_ataque (
 ) engine=innodb;
 
 /* tabla de ips bloqueadas */
-drop table if exists ips_bloqueadas;
 create table ips_bloqueadas (
   ip_address       varchar(45)  not null,
   motivo           varchar(255) null,
@@ -37,7 +34,6 @@ create table ips_bloqueadas (
 ) engine=innodb;
 
 /* tabla de log de peticiones */
-drop table if exists peticiones_log;
 create table peticiones_log (
   id_log         int          not null auto_increment,
   fecha_hora     datetime     not null,
@@ -54,7 +50,6 @@ create table peticiones_log (
 ) engine=innodb;
 
 /* tabla de alertas */
-drop table if exists alertas;
 create table alertas (
   id_alerta        int          not null auto_increment,
   id_log           int          not null,
@@ -68,7 +63,6 @@ create table alertas (
 ) engine=innodb;
 
 /* tabla de auditoria del sistema */
-drop table if exists auditoria_sistema;
 create table auditoria_sistema (
   id_auditoria   int          not null auto_increment,
   tabla_afectada varchar(50)  not null,
@@ -85,7 +79,6 @@ create table auditoria_sistema (
 
 delimiter //
 
-drop function if exists fn_evaluar_criticidad//
 create function fn_evaluar_criticidad(in_score int)
 returns varchar(20)
 reads sql data
@@ -107,7 +100,6 @@ delimiter ;
 
 delimiter //
 
-drop function if exists fn_estado_bloqueo_ip//
 create function fn_estado_bloqueo_ip(in_ip varchar(45))
 returns int
 reads sql data
@@ -136,7 +128,6 @@ delimiter ;
 
 delimiter //
 
-drop procedure if exists sp_procesar_peticion//
 create procedure sp_procesar_peticion(
   in in_ip         varchar(45),
   in in_metodo     varchar(10),
@@ -194,7 +185,6 @@ delimiter ;
 
 delimiter //
 
-drop procedure if exists sp_reporte_amenazas//
 create procedure sp_reporte_amenazas(
   in in_fecha_inicio datetime,
   in in_fecha_fin    datetime
@@ -218,7 +208,6 @@ delimiter ;
 
 delimiter //
 
-drop trigger if exists trg_auditar_bloqueo_ip//
 create trigger trg_auditar_bloqueo_ip
 after update on ips_bloqueadas
 for each row
@@ -233,7 +222,6 @@ delimiter ;
 
 delimiter //
 
-drop trigger if exists trg_validar_alerta//
 create trigger trg_validar_alerta
 before insert on alertas
 for each row
