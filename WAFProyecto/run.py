@@ -21,8 +21,7 @@ def run_api():
     subprocess.run([
         sys.executable, "-m", "uvicorn",
         "api.server:app",
-        "--host", "0.0.0.0", "--port", "8000",
-        "--reload",
+        "--host", "0.0.0.0", "--port", "8000"
     ], cwd=PROJECT_DIR)
 
 
@@ -31,8 +30,7 @@ def run_waf():
     subprocess.run([
         sys.executable, "-m", "uvicorn",
         "main:app",
-        "--host", "0.0.0.0", "--port", "8080",
-        "--reload",
+        "--host", "0.0.0.0", "--port", "8080"
     ], cwd=PROJECT_DIR)
 
 
