@@ -2,15 +2,16 @@
 ScoringEngine – applies compiled WAF rules to the request payload
 and returns a ScoringResult with a 0–100 risk score.
 
-Decision thresholds (from config.py):
-  score < 40   → ALLOW
-  40 ≤ score < 70 → ALLOW + log WARNING
-  score ≥ 70   → BLOCK
+Decision thresholds (from config.py, aligned with fn_evaluar_criticidad):
+  score < 40   → Permitida (clean)
+  40 ≤ score < 70 → Alerta / Advertencia
+  score ≥ 70   → Bloqueada / Critico
 """
 
 from dataclasses import dataclass, field
 from typing import List, Optional
 from core.detection.rules_loader import rule_manager
+from config import SCORE_ALLOW, SCORE_WARN
 
 
 @dataclass
@@ -22,37 +23,19 @@ class ScoringResult:
     rule_hits:   List[str] = field(default_factory=list)
 
 
-def evaluate(payload: str, db) -> ScoringResult:
+def evaluate(payload: str) -> ScoringResult:
     """
-    Run every compiled rule against the payload, respecting live config from DB.
+    Run every compiled rule against the payload.
     Uses the highest single-rule score as the final score
     (adds partial scores from additional hits, capped at 100).
+    Thresholds come from config.py constants.
     """
-    from db.models.system_config import SystemConfig
-
-    # Load dynamic config
-    conf_dict = {}
-    for c in db.query(SystemConfig).all():
-        conf_dict[c.key] = c.value
-
-    score_block = float(conf_dict.get("score_block_threshold", "70"))
-    score_warn  = float(conf_dict.get("score_warn_threshold", "40"))
-
-    # Active categories
-    active_cats = []
-    if conf_dict.get("rules_sqli_enabled", "true").lower() == "true": active_cats.append("SQL Injection")
-    if conf_dict.get("rules_xss_enabled", "true").lower() == "true":  active_cats.append("Cross-Site Scripting (XSS)")
-    if conf_dict.get("rules_lfi_enabled", "true").lower() == "true":  active_cats.append("Local File Inclusion (LFI) / Path Traversal")
-
     result  = ScoringResult()
     scores  = []
     hits    = []
     top_cat = None
 
     for category in rule_manager.get_categories():
-        if category["category"] not in active_cats:
-            continue
-
         for rule in category["rules"]:
             if rule["pattern"].search(payload):
                 scores.append(rule["score"])
@@ -72,10 +55,10 @@ def evaluate(payload: str, db) -> ScoringResult:
     result.rule_hits  = hits
     result.attack_type = top_cat
 
-    if final >= score_block:
+    if final >= SCORE_WARN:
         result.action = "block"
         result.level  = "blocked"
-    elif final >= score_warn:
+    elif final >= SCORE_ALLOW:
         result.action = "allow"
         result.level  = "warning"
     else:

@@ -1,6 +1,6 @@
 """
 API & Dashboard Server – provides /api/* endpoints and serves static dashboard.
-Runs on port 8000. No authentication required (demo purpose).
+Runs on port 8000.
 """
 
 import os
@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse
 import uvicorn
 
 from db.connection import init_db
-from api.routes import logs, stats, blocked_ips, config, alerts
+from api.routes import logs, stats, blocked_ips, alerts
 from config import API_PORT
 
 app = FastAPI(title="WAF Dashboard API", docs_url="/api-docs")
@@ -30,11 +30,10 @@ def startup():
     print(f"[API] Dashboard & API running on port {API_PORT}")
 
 
-# ── API Routes (no auth) ──
+# ── API Routes ──
 app.include_router(logs.router,       prefix="/api")
 app.include_router(stats.router,      prefix="/api")
 app.include_router(blocked_ips.router, prefix="/api")
-app.include_router(config.router,     prefix="/api")
 app.include_router(alerts.router,     prefix="/api")
 
 # ── Static Dashboard ──

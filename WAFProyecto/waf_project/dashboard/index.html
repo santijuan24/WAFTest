@@ -308,13 +308,6 @@
         Reportes
         <span class="alert-badge" id="alertBadge" style="display:none;margin-left:auto;">0</span>
       </a>
-      <a href="#" class="menu-item" onclick="showSection('config',this)" id="navConfig">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Configuración
-      </a>
-      
-      <!-- Hidden block IPs shortcut from old nav -->
-      <a href="#" class="menu-item" onclick="showSection('blocked',this)" id="navBlocked" style="display:none">Lista Negra</a>
     </div>
 
     <div class="nav-footer">
@@ -514,8 +507,9 @@
           <label style="display:block; font-size:0.7rem; color:var(--text-muted); font-weight:600; margin-bottom:8px; text-transform:uppercase;">Estado</label>
           <select id="filterAction" style="width:100%; border:none; background:rgba(255,255,255,0.05);">
             <option value="">Todos los estados</option>
-            <option value="allow">Permitidos</option>
-            <option value="block">Bloqueados</option>
+            <option value="Permitida">Permitidos</option>
+            <option value="Alerta">Alerta</option>
+            <option value="Bloqueada">Bloqueados</option>
           </select>
         </div>
         <div>
@@ -728,8 +722,8 @@
       </div>
     </div>
 
-    <!-- REGLAS ACTIVAS (Previously CONFIG) -->
-    <div class="section" id="section-config">
+    <!-- REGLAS ACTIVAS -->
+    <div class="section" id="section-rules">
       <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 24px;">
         <div>
           <h2 style="margin-bottom:8px;">Reglas Activas</h2>
@@ -802,26 +796,15 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // WAF API runs on 8000 now, dashboard serves independently
     const API = 'http://localhost:8000/api';
-    let _wafEnabled = true;
     let _logsOffset = 0;
     const LOGS_LIMIT = 50;
 
-    // Authentication removed for demo purposes
     function authHeaders() {
-        return {
-            'Content-Type': 'application/json'
-        };
+        return { 'Content-Type': 'application/json' };
     }
-
-    function authGetHeaders() {
-        return {};
-    }
-
-    function logout() {
-        toast('Sesión cerrada (simulado)', 'info');
-    }
+    function authGetHeaders() { return {}; }
+    function logout() { toast('Sesión cerrada (simulado)', 'info'); }
 
     // ── Charts ──────────────────────────────────────────────────────────────
     let chartTypes = null, chartAction = null;
@@ -852,7 +835,6 @@
       if (id === 'logs') loadLogs();
       if (id === 'blocked') loadBlocked();
       if (id === 'alerts') loadAlerts();
-      if (id === 'config') loadConfig();
     }
 
     // ── Toast ───────────────────────────────────────────────────────────────
@@ -864,33 +846,6 @@
       setTimeout(() => t.style.display = 'none', 3000);
     }
 
-    // ── WAF Toggle ──────────────────────────────────────────────────────────
-    async function toggleWAF() {
-      const newVal = !_wafEnabled;
-      try {
-        const response = await fetch(`${API}/config/waf_enabled`, {
-          method: 'PUT', headers: authHeaders(),
-          body: JSON.stringify({ value: newVal ? 'true' : 'false' })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        _wafEnabled = newVal;
-        updateWAFState();
-        toast(`Motor WAF ha sido ${newVal ? 'activado' : 'desactivado'}`, newVal ? 'success' : 'error');
-      } catch (e) { toast('Error conectando a la API: ' + e.message, 'error'); }
-    }
-
-    function updateWAFState() {
-      const badge = document.getElementById('wafBadge');
-      const btn = document.getElementById('toggleBtn');
-      if (_wafEnabled) {
-        badge.textContent = 'Estado WAF: ACTIVO'; badge.className = 'waf-badge badge-on';
-        btn.textContent = 'Apagar Interceptor'; btn.className = 'toggle-btn disabling';
-      } else {
-        badge.textContent = 'Estado WAF: APAGADO'; badge.className = 'waf-badge badge-off';
-        btn.textContent = 'Encender Interceptor'; btn.className = 'toggle-btn enabling';
-      }
-    }
-
     // ── Stats / Overview ────────────────────────────────────────────────────
     async function loadStats() {
       try {
@@ -899,16 +854,12 @@
         document.getElementById('kTotal').textContent = (d.total_requests ?? 0).toLocaleString();
         document.getElementById('kBlocked').textContent = (d.blocked_requests ?? 0).toLocaleString();
         document.getElementById('kAllowed').textContent = (d.allowed_requests ?? 0).toLocaleString();
-        document.getElementById('kScore').textContent = (d.average_risk_score ?? 0).toFixed(1);
         document.getElementById('kIPs').textContent = (d.active_blocked_ips ?? 0).toLocaleString();
-        document.getElementById('kAlerts').textContent = (d.unread_alerts ?? 0).toLocaleString();
 
-        // alert badge in nav
         const unread = d.unread_alerts ?? 0;
         const ab = document.getElementById('alertBadge');
-        ab.textContent = unread; ab.style.display = unread > 0 ? 'inline' : 'none';
+        if (ab) { ab.textContent = unread; ab.style.display = unread > 0 ? 'inline' : 'none'; }
 
-        // charts
         const types = d.attacks_by_type ?? {};
         chartTypes.data.labels = Object.keys(types);
         chartTypes.data.datasets[0].data = Object.values(types);
@@ -919,31 +870,31 @@
       } catch (e) { console.warn('Stats error', e); }
     }
 
-    // ── Logs ────────────────────────────────────────────────────────────────
+    // ── Logs (sentinel_waf: peticiones_log) ──────────────────────────────────
     async function loadLogs() {
       const ip = document.getElementById('filterIP').value.trim();
-      const action = document.getElementById('filterAction').value;
+      const accion = document.getElementById('filterAction').value;
       let url = `${API}/logs/?limit=${LOGS_LIMIT}&skip=${_logsOffset}`;
       if (ip) url += `&ip=${encodeURIComponent(ip)}`;
-      if (action) url += `&action=${action}`;
+      if (accion) url += `&accion=${accion}`;
       try {
         const r = await fetch(url, { headers: authGetHeaders() });
         const rows = await r.json();
         const tbody = document.querySelector('#logsTable tbody');
-        tbody.innerHTML = rows.length ? rows.map(l => `
+        tbody.innerHTML = rows.length ? rows.map(l => {
+          const isBlock = l.accion_tomada === 'Bloqueada';
+          return `
       <tr>
-        <td style="padding-left:32px;"><span style="color:var(--text-muted);font-variant-numeric:tabular-nums;">${l.timestamp?.replace('T', ' ').slice(0, 19) ?? '–'}</span></td>
+        <td style="padding-left:32px;"><span style="color:var(--text-muted);font-variant-numeric:tabular-nums;">${l.fecha_hora?.replace('T', ' ').slice(0, 19) ?? '–'}</span></td>
         <td><code>${l.ip_address}</code></td>
-        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="#" style="color:var(--primary); font-family:monospace; text-decoration:none;" title="${l.path}">${l.path}</a></td>
-        <td><span style="font-size:0.75rem; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; font-weight:600; color:var(--text-muted);">${l.method}</span></td>
-        <td><span class="action-badge ${l.action === 'block' ? 'action-block' : 'action-allow'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> ${l.action === 'block' ? 'BLOQUEADO' : 'PERMITIDO'}</span></td>
-        <td style="font-size:0.8rem; color:var(--text-muted);">${Math.floor(Math.random() * 20 + 2)}ms</td>
-      </tr>`).join('') : '<tr><td colspan="6" class="empty">No existen registros para estos criterios</td></tr>';
-        
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><a href="#" style="color:var(--primary); font-family:monospace; text-decoration:none;" title="${l.endpoint}">${l.endpoint}</a></td>
+        <td><span style="font-size:0.75rem; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; font-weight:600; color:var(--text-muted);">${l.metodo}</span></td>
+        <td><span class="action-badge ${isBlock ? 'action-block' : 'action-allow'}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> ${l.accion_tomada ?? 'Permitida'}</span></td>
+        <td style="font-size:0.8rem; color:var(--text-muted);">${l.score_riesgo}</td>
+      </tr>`;
+        }).join('') : '<tr><td colspan="6" class="empty">No existen registros para estos criterios</td></tr>';
         const info = document.getElementById('logsShowingInfo');
-        if (info) {
-          info.textContent = `Mostrando ${_logsOffset + 1} a ${_logsOffset + rows.length} peticiones`;
-        }
+        if (info) info.textContent = `Mostrando ${_logsOffset + 1} a ${_logsOffset + rows.length} peticiones`;
       } catch (e) { toast('Error cargando registros', 'error'); }
     }
 
@@ -964,7 +915,7 @@
       } catch (e) { toast('Error purgando registros', 'error'); }
     }
 
-    // ── Blocked IPs ─────────────────────────────────────────────────────────
+    // ── Blocked IPs (sentinel_waf: ips_bloqueadas) ───────────────────────────
     async function loadBlocked() {
       try {
         const r = await fetch(`${API}/blocked-ips/`, { headers: authGetHeaders() });
@@ -973,8 +924,8 @@
         tbody.innerHTML = rows.length ? rows.map(b => `
       <tr>
         <td style="padding-left:24px;"><code>${b.ip_address}</code></td>
-        <td style="font-size:0.85rem; font-weight:500;">${b.reason ?? '–'}</td>
-        <td style="font-size:0.8rem;color:var(--text-muted);font-variant-numeric:tabular-nums;">${b.blocked_at?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
+        <td style="font-size:0.85rem; font-weight:500;">${b.motivo ?? '–'}</td>
+        <td style="font-size:0.8rem;color:var(--text-muted);font-variant-numeric:tabular-nums;">${b.fecha_bloqueo?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
         <td><span style="background:rgba(239,68,68,0.1); color:var(--danger); padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; border:1px solid rgba(239,68,68,0.3);">BLOQUEADO</span></td>
         <td><button class="btn" style="padding: 4px 12px; font-size: 0.75rem; color:var(--text); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);" onclick="unblockIP('${b.ip_address}')">Remover</button></td>
       </tr>`).join('') : '<tr><td colspan="5" class="empty">La lista de IP está limpia...</td></tr>';
@@ -983,12 +934,12 @@
 
     async function blockIP() {
       const ip = document.getElementById('newBlockIP').value.trim();
-      const reason = document.getElementById('newBlockReason').value.trim();
+      const motivo = document.getElementById('newBlockReason').value.trim();
       if (!ip) { toast('Favor de ingresar una IP válida', 'error'); return; }
       try {
         await fetch(`${API}/blocked-ips/`, {
           method: 'POST', headers: authHeaders(),
-          body: JSON.stringify({ ip_address: ip, reason: reason || 'Bloqueo Manual' })
+          body: JSON.stringify({ ip_address: ip, motivo: motivo || 'Bloqueo Manual' })
         });
         document.getElementById('newBlockIP').value = '';
         document.getElementById('newBlockReason').value = '';
@@ -1003,32 +954,35 @@
       } catch (e) { toast('Error restaurando acceso', 'error'); }
     }
 
-    // ── Alerts ──────────────────────────────────────────────────────────────
+    // ── Alerts (sentinel_waf: alertas) ───────────────────────────────────────
     async function loadAlerts() {
       const unreadOnly = document.getElementById('alertUnread').checked;
       try {
         const r = await fetch(`${API}/alerts/?unread_only=${unreadOnly}&limit=100`, { headers: authGetHeaders() });
         const rows = await r.json();
         const tbody = document.querySelector('#alertsTable tbody');
-        tbody.innerHTML = rows.length ? rows.map(a => `
-      <tr style="${!a.is_read ? 'background:rgba(255,255,255,0.03);' : ''}">
-        <td><span class="badge badge-${a.level}">${a.level}</span></td>
-        <td style="font-size:0.85rem; font-weight: ${!a.is_read ? '600' : '400'}; color: ${!a.is_read ? '#fff' : 'var(--text-muted)'};">${a.message}</td>
-        <td><code>${a.source_ip ?? '–'}</code></td>
-        <td style="font-size:0.8rem;color:var(--text-muted);">${a.timestamp?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
-        <td style="text-align:center;">${a.is_read ? '<span style="color:var(--success)">✔</span>' : '<span style="color:var(--primary);font-size:1.2rem;">●</span>'}</td>
-        <td>${!a.is_read ? `<button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.75rem;" onclick="markRead(${a.id})">Entendido</button>` : ''}</td>
-      </tr>`).join('') : '<tr><td colspan="6" class="empty">El sistema no reporta alertas de seguridad</td></tr>';
+        tbody.innerHTML = rows.length ? rows.map(a => {
+          const levelClass = a.nivel_criticidad === 'Critico' ? 'badge-critical' : a.nivel_criticidad === 'Advertencia' ? 'badge-media' : 'badge-baja';
+          return `
+      <tr style="${!a.revisada ? 'background:rgba(255,255,255,0.03);' : ''}">
+        <td><span class="badge ${levelClass}">${a.nivel_criticidad ?? 'Info'}</span></td>
+        <td style="font-size:0.85rem; font-weight: ${!a.revisada ? '600' : '400'}; color: ${!a.revisada ? '#fff' : 'var(--text-muted)'};">${a.mensaje ?? '–'}</td>
+        <td><code>Log #${a.id_log}</code></td>
+        <td style="font-size:0.8rem;color:var(--text-muted);">${a.fecha_generacion?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
+        <td style="text-align:center;">${a.revisada ? '<span style="color:var(--success)">✔</span>' : '<span style="color:var(--primary);font-size:1.2rem;">●</span>'}</td>
+        <td>${!a.revisada ? `<button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.75rem;" onclick="markRead(${a.id_alerta})">Entendido</button>` : ''}</td>
+      </tr>`;
+        }).join('') : '<tr><td colspan="6" class="empty">El sistema no reporta alertas de seguridad</td></tr>';
 
-        // recent alerts on overview
+        // recent alerts on overview (show Critico ones)
         const tbody2 = document.querySelector('#recentAlertsTable tbody');
-        const critical = rows.filter(a => a.level === 'critical').slice(0, 10);
+        const critical = rows.filter(a => a.nivel_criticidad === 'Critico').slice(0, 10);
         tbody2.innerHTML = critical.length ? critical.map(a => `
       <tr>
-        <td style="color:var(--text-muted);font-variant-numeric:tabular-nums;">${a.timestamp?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
-        <td><code>${a.source_ip ?? '–'}</code></td>
-        <td style="font-weight:500;">${a.message}</td>
-        <td><span class="badge badge-${a.level}">${a.level}</span></td>
+        <td style="color:var(--text-muted);font-variant-numeric:tabular-nums;">${a.fecha_generacion?.replace('T', ' ').slice(0, 19) ?? '–'}</td>
+        <td><code>Log #${a.id_log}</code></td>
+        <td style="font-weight:500;">${a.mensaje ?? '–'}</td>
+        <td><span class="badge badge-critical">${a.nivel_criticidad}</span></td>
         <td><span class="action-badge action-block"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Bloqueado</span></td>
         <td><button class="icon-btn" title="Ver Detalles"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button></td>
       </tr>`).join('') : '<tr><td colspan="6" class="empty">No ha habido detecciones críticas</td></tr>';
@@ -1049,84 +1003,6 @@
       if (!confirm('¿Eliminar por completo el historial de notificaciones?')) return;
       await fetch(`${API}/alerts/clear`, { method: 'DELETE', headers: authGetHeaders() });
       toast('Historial de alertas vaciado', 'success'); loadAlerts(); loadStats();
-    }
-
-    // ── Config ──────────────────────────────────────────────────────────────
-    let _configSnapshot = {};
-
-    async function loadConfig() {
-      try {
-        const r = await fetch(`${API}/config/`, { headers: authGetHeaders() });
-        const rows = await r.json();
-        _configSnapshot = {};
-        rows.forEach(c => _configSnapshot[c.key] = c);
-
-        // sync WAF state from config
-        const wafCfg = rows.find(c => c.key === 'waf_enabled');
-        if (wafCfg) { _wafEnabled = wafCfg.value === 'true'; updateWAFState(); }
-
-        const labelMap = {
-          waf_enabled: 'Interruptor Maestro WAF',
-          score_block_threshold: 'Umbral de Tolerancia a Bloqueo',
-          score_warn_threshold: 'Sensibilidad de Alerta Temprana',
-          rules_sqli_enabled: 'Motor de Detección SQLi',
-          rules_xss_enabled: 'Malla de Inyección XSS',
-          rules_lfi_enabled: 'Filtro Transversal (LFI)',
-          auto_block_on_attack: 'Castigo Automático IP Local',
-        };
-
-        const grid = document.querySelector('#rulesTable tbody');
-        grid.innerHTML = rows.map(c => {
-          const isBool = c.value === 'true' || c.value === 'false';
-          const isNum = !isBool && !isNaN(Number(c.value));
-          let input;
-          if (isBool) {
-            input = `
-              <label class="toggle-switch">
-                <input type="checkbox" id="cfg_${c.key}" ${c.value === 'true' ? 'checked' : ''}>
-                <span class="slider"></span>
-              </label>
-            `;
-          } else {
-            input = `<input type="text" id="cfg_${c.key}" value="${c.value}" style="width:60px; background:var(--bg); border:1px solid var(--border); color:#fff; padding:4px; border-radius:4px; text-align:center;">`;
-          }
-          const label = labelMap[c.key] || c.key;
-          const status = isBool ? (c.value === 'true' ? '<span style="color:var(--success);font-weight:600;font-size:0.75rem;">Operativa</span>' : '<span style="color:var(--text-muted);font-weight:600;font-size:0.75rem;">Inactiva</span>') : '<span style="color:var(--primary);font-weight:600;font-size:0.75rem;">Ajustable</span>';
-          
-          return `
-            <tr>
-              <td style="padding-left:32px; font-weight:600;">${label}</td>
-              <td style="font-size:0.8rem; color:var(--text-muted); max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${c.description ?? ''}">${c.description ?? c.key}</td>
-              <td>${input}</td>
-              <td>${status}</td>
-            </tr>
-          `;
-        }).join('');
-      } catch (e) { toast('Error refrescando configuraciones', 'error'); }
-    }
-
-    async function saveConfig() {
-      const keys = Object.keys(_configSnapshot);
-      let saved = 0;
-      for (const key of keys) {
-        const el = document.getElementById('cfg_' + key);
-        if (!el) continue;
-        const val = el.type === 'checkbox' ? (el.checked ? 'true' : 'false') : el.value;
-        const orig = _configSnapshot[key];
-        try {
-          const response = await fetch(`${API}/config/${key}`, {
-            method: 'PUT', headers: authHeaders(),
-            body: JSON.stringify({ value: val, description: orig.description })
-          });
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          saved++;
-        } catch (e) {
-          toast(`Error guardando ${key}: ${e.message}`, 'error');
-          return;
-        }
-      }
-      toast(`${saved} configuraciones guardadas exitosamente`, 'success');
-      loadConfig();
     }
 
     // ── Auto-refresh ─────────────────────────────────────────────────────────

@@ -1,1 +1,1 @@
-"""Dashboard placeholder – to be implemented in a future phase."""
+# Dashboard package

@@ -1,24 +1,23 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, String, Boolean, DateTime
 from db.connection import Base
 
 
-class BlockedIP(Base):
-    __tablename__ = "blocked_ips"
+class IPBloqueada(Base):
+    """Mapea la tabla ips_bloqueadas de sentinel_waf."""
+    __tablename__ = "ips_bloqueadas"
 
-    id         = Column(Integer,  primary_key=True, autoincrement=True)
-    ip_address = Column(String(45), unique=True, nullable=False, index=True)
-    reason     = Column(String(512), nullable=True)
-    blocked_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    expires_at = Column(DateTime, nullable=True)          # None = permanent
-    is_active  = Column(Boolean,  default=True, nullable=False)
+    ip_address       = Column(String(45), primary_key=True)
+    motivo           = Column(String(255), nullable=True)
+    fecha_bloqueo    = Column(DateTime, nullable=False, default=datetime.utcnow)
+    fecha_expiracion = Column(DateTime, nullable=True)
+    activa           = Column(Boolean, nullable=False, default=True)
 
     def to_dict(self):
         return {
-            "id":         self.id,
-            "ip_address": self.ip_address,
-            "reason":     self.reason,
-            "blocked_at": self.blocked_at.isoformat() if self.blocked_at else None,
-            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
-            "is_active":  self.is_active,
+            "ip_address":       self.ip_address,
+            "motivo":           self.motivo,
+            "fecha_bloqueo":    self.fecha_bloqueo.isoformat() if self.fecha_bloqueo else None,
+            "fecha_expiracion": self.fecha_expiracion.isoformat() if self.fecha_expiracion else None,
+            "activa":           self.activa,
         }

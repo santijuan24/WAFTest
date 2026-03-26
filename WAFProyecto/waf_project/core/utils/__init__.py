@@ -1,1 +1,1 @@
-# Utility helpers (GeoIP, etc.)
+# Utility helpers
