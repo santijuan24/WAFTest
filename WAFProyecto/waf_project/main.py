@@ -5,6 +5,11 @@ Runs on port 8080. Forwards clean requests to the target application on port 300
 
 from datetime import datetime
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import uvicorn
