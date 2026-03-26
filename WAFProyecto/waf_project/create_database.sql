@@ -276,13 +276,11 @@ drop user if exists 'auditor_siem'@'localhost';
 create user 'auditor_siem'@'localhost' identified by 'Auditor123';
 grant execute on procedure sentinel_waf.sp_reporte_amenazas to 'auditor_siem'@'localhost';
 
-/* usuario proxy_app: solo insert en peticiones_log y execute en sp_procesar_peticion */
-drop user if exists 'proxy_app'@'localhost';
-create user 'proxy_app'@'localhost' identified by 'Proxy123';
-grant execute on procedure sentinel_waf.sp_procesar_peticion to 'proxy_app'@'localhost';
+/* usuario guardian_bloq: solo gestiona bloqueos, sin acceso a logs o alertas.*/
+drop user if exists 'guardian_bloqueos'@'localhost';
+create user 'guardian_bloqueos'@'localhost' identified by 'Guard123';
 
-flush privileges;
-
+grant select, insert, update on sentinel_waf.ips_bloqueadas to 'guardian_bloqueos'@'localhost';
 
 /* ============================================================ */
 /*  DML – DATOS DE PRUEBA                                      */
