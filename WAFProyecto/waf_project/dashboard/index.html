@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
   <title>WAF SIEM Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
@@ -242,6 +243,7 @@
       padding: 10px 14px; border-radius: 6px; font-size: 0.8rem; outline: none; transition: 0.2s;
     }
     .filters input:focus, .filters select:focus { border-color: var(--primary); background: rgba(255,255,255,0.06); }
+    .filters select option { background: var(--bg-panel); color: var(--text); padding: 8px; }
 
     .btn {
       background: var(--primary); color: #fff; border: none; padding: 8px 16px;
