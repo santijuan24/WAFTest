@@ -477,33 +477,12 @@
       
       <div class="kpis">
         <div class="kpi" style="border-top: 3px solid var(--primary);">
-          <div class="label" style="margin-bottom:4px;">Total Peticiones (24H)</div>
-          <div class="value" id="kLogsTotal" style="font-size:1.8rem;">1,248,302</div>
-          <div style="font-size:0.75rem; color:var(--primary); font-weight:600; margin-top:8px;">~ +12.5% vs ayer</div>
+          <div class="label" style="margin-bottom:4px;">Total Peticiones</div>
+          <div class="value" id="kLogsTotal" style="font-size:1.8rem;">–</div>
         </div>
         <div class="kpi" style="border-top: 3px solid var(--danger);">
           <div class="label" style="margin-bottom:4px;">Bloqueos Activos</div>
-          <div class="value" id="kLogsBlocked" style="font-size:1.8rem;">4,192</div>
-          <div style="font-size:0.75rem; color:var(--danger); font-weight:600; margin-top:8px;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:text-bottom"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> 
-            82 Críticos
-          </div>
-        </div>
-        <div class="kpi" style="border-top: 3px solid #14b8a6;">
-          <div class="label" style="margin-bottom:4px;">Tiempo de Respuesta</div>
-          <div class="value" style="font-size:1.8rem;">14ms</div>
-          <div style="font-size:0.75rem; color:var(--text-muted); font-weight:500; margin-top:8px;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:text-bottom"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> 
-            Promedio Global
-          </div>
-        </div>
-        <div class="kpi" style="border-top: 3px solid var(--success);">
-          <div class="label" style="margin-bottom:4px;">Tasa de Mitigación</div>
-          <div class="value" style="font-size:1.8rem;">99.98%</div>
-          <div style="font-size:0.75rem; color:var(--success); font-weight:500; margin-top:8px;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:text-bottom"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> 
-            Operación Optimizada
-          </div>
+          <div class="value" id="kLogsBlocked" style="font-size:1.8rem;">–</div>
         </div>
       </div>
 
@@ -578,59 +557,7 @@
         </div>
       </div>
       
-      <div class="charts-row" style="margin-top:24px;">
-        <div class="card">
-          <div class="card-header">
-            <h3 style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); font-weight:600;">Principales Orígenes de Ataque</h3>
-          </div>
-          <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
-            <div style="display:flex; align-items:center;">
-              <span style="width:120px; font-weight:500; font-size:0.85rem;">🇷🇺 Rusia</span>
-              <div style="flex:1; height:4px; background:rgba(255,255,255,0.05); border-radius:4px; margin:0 16px;">
-                 <div style="width:80%; height:100%; background:var(--danger); border-radius:4px;"></div>
-              </div>
-              <span style="width:40px; text-align:right; font-weight:600; font-size:0.8rem;">3,102</span>
-            </div>
-            <div style="display:flex; align-items:center;">
-              <span style="width:120px; font-weight:500; font-size:0.85rem;">🇨🇳 China</span>
-              <div style="flex:1; height:4px; background:rgba(255,255,255,0.05); border-radius:4px; margin:0 16px;">
-                 <div style="width:50%; height:100%; background:var(--danger); border-radius:4px;"></div>
-              </div>
-              <span style="width:40px; text-align:right; font-weight:600; font-size:0.8rem;">1,894</span>
-            </div>
-            <div style="display:flex; align-items:center;">
-              <span style="width:120px; font-weight:500; font-size:0.85rem;">🇺🇸 Estados Unidos</span>
-              <div style="flex:1; height:4px; background:rgba(255,255,255,0.05); border-radius:4px; margin:0 16px;">
-                 <div style="width:20%; height:100%; background:var(--danger); border-radius:4px;"></div>
-              </div>
-              <span style="width:40px; text-align:right; font-weight:600; font-size:0.8rem;">812</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header">
-            <h3 style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); font-weight:600;">Endpoints Más Vulnerados</h3>
-          </div>
-          <div style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <a href="#" style="color:var(--primary); font-size:0.8rem; font-family:monospace;">/api/v1/auth/login</a>
-                <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-top:4px;">Fuerza Bruta Detectada</div>
-              </div>
-              <span style="color:var(--danger); font-weight:600; font-size:0.8rem;">+42%</span>
-            </div>
-            <div style="height:1px; background:var(--border);"></div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <a href="#" style="color:var(--primary); font-size:0.8rem; font-family:monospace;">/wp-admin.php</a>
-                <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-top:4px;">Escaneo de Vulnerabilidades</div>
-              </div>
-              <span style="color:var(--danger); font-weight:600; font-size:0.8rem;">+12%</span>
-            </div>
-          </div>
-        </div>
-      </div>
+
     </div>
 
     <!-- IP ANALYSIS (Formerly BLOCKED IPs) -->
@@ -646,31 +573,7 @@
         <button class="btn btn-primary" style="padding:8px 24px; font-weight:600;">Analizar</button>
       </div>
 
-      <div class="charts-row" style="margin-top:24px; grid-template-columns: 1.2fr 1.8fr;">
-        <!-- Left: Map Sandbox -->
-        <div class="card" style="padding:0; display:flex; flex-direction:column;">
-          <div class="card-header" style="padding:24px 24px 0 24px; margin-bottom:0;">
-            <h3 style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); font-weight:600;">Amenazas por Región</h3>
-          </div>
-          <div style="padding:24px; flex:1; display:flex; align-items:center; justify-content:center; position:relative; min-height:300px;">
-            <!-- Dummy Map representation since we don't have D3/Leaflet loaded properly here -->
-            <div style="width:100%; height:100%; border:2px dashed rgba(255,255,255,0.05); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:0.8rem; flex-direction:column; gap:8px;">
-               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
-               <span>Módulo Global de Mapas (No Cargado)</span>
-            </div>
-          </div>
-          <!-- Legend or top countries -->
-          <div style="padding: 0 24px 24px 24px;">
-            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">
-               <span>🇺🇸 Estados Unidos</span> <span style="color:var(--danger); font-weight:600;">14,203 ataques</span>
-            </div>
-            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">
-               <span>🇷🇺 Rusia</span> <span style="color:var(--danger); font-weight:600;">8,491 ataques</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: Control List -->
+      <div style="margin-top:24px;">
         <div class="card" style="padding:0; display:flex; flex-direction:column;">
           <div class="card-header" style="padding:24px; border-bottom:1px solid var(--border); margin:0;">
             <h3 style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); font-weight:600;">Matriz de Control de Acceso (Lista Negra)</h3>
@@ -745,56 +648,23 @@
       <div class="kpis">
         <div class="kpi" style="border-top: 3px solid var(--primary);">
           <div class="label" style="margin-bottom:4px;">Reglas en Operación</div>
-          <div class="value" style="font-size:1.8rem;">142</div>
-          <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; margin-top:8px;">8 Categorías activas</div>
-        </div>
-        <div class="kpi" style="border-top: 3px solid #14b8a6;">
-          <div class="label" style="margin-bottom:4px;">Tasa de Falsos Positivos</div>
-          <div class="value" style="font-size:1.8rem;">0.02%</div>
-          <div style="font-size:0.75rem; color:#14b8a6; font-weight:600; margin-top:8px;">Dentro del límite (0.05%)</div>
-        </div>
-        <div class="kpi" style="border-top: 3px solid var(--success);">
-          <div class="label" style="margin-bottom:4px;">Auto-Aprendizaje</div>
-          <div class="value" style="font-size:1.8rem; color:var(--success);">HABILITADO</div>
-          <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; margin-top:8px;">Ajuste dinámico activo</div>
-        </div>
-        <div class="kpi" style="border-top: 3px solid var(--warning);">
-          <div class="label" style="margin-bottom:4px;">Actualización de Firmas</div>
-          <div class="value" style="font-size:1.8rem;">Hace 2h</div>
-          <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600; margin-top:8px;">Siguiente revisión: 22:00</div>
+          <div class="value" style="font-size:1.8rem;" id="kRulesTotal">–</div>
         </div>
       </div>
 
-      <div class="charts-row" style="margin-top:24px;">
+      <div style="margin-top:24px;">
         <div class="card" style="padding:0;">
           <div class="table-wrap" style="margin:0;">
             <table id="rulesTable">
               <thead>
                 <tr>
-                  <th style="padding-left:32px;">Nombre de la Regla / Parámetro</th>
-                  <th>ID / Desc</th>
-                  <th>Acción</th>
-                  <th>Estatus</th>
+                  <th style="padding-left:32px;">Categoría de Ataque</th>
                 </tr>
               </thead>
               <tbody>
                 <!-- JS configGrid substitute -->
               </tbody>
             </table>
-          </div>
-        </div>
-        
-        <div class="card" style="background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(30,58,138,0.2) 100%); border: 1px solid rgba(59,130,246,0.2);">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-            <div style="width:40px; height:40px; border-radius:8px; background:rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:center; color:var(--primary);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-            </div>
-            <h3 style="font-size:1rem; font-weight:600; color:#fff; margin:0;">Optimización Automática AI</h3>
-          </div>
-          <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5; margin-bottom:24px;">El motor de aprendizaje automático analiza los patrones de tráfico y ajusta dinámicamente las firmas para bloquear amenazas de Día Cero sin afectar el tráfico válido.</p>
-          <div style="background:rgba(0,0,0,0.3); border-radius:6px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
-             <span style="font-size:0.85rem; font-weight:600; color:var(--text-muted)">Estado del Motor Base</span>
-             <span style="background:rgba(16,185,129,0.15); color:var(--success); padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; border:1px solid rgba(16,185,129,0.3);">ACTIVO</span>
           </div>
         </div>
       </div>
@@ -879,22 +749,39 @@
       try {
         const r = await fetch(`${API}/stats/`, { headers: authGetHeaders() });
         const d = await r.json();
-        document.getElementById('kTotal').textContent = (d.total_requests ?? 0).toLocaleString();
-        document.getElementById('kBlocked').textContent = (d.blocked_requests ?? 0).toLocaleString();
-        document.getElementById('kAllowed').textContent = (d.allowed_requests ?? 0).toLocaleString();
-        document.getElementById('kIPs').textContent = (d.active_blocked_ips ?? 0).toLocaleString();
+        
+        // Panel Overview
+        const eTotal = document.getElementById('kTotal'); if(eTotal) eTotal.textContent = (d.total_requests ?? 0).toLocaleString();
+        const eBlocked = document.getElementById('kBlocked'); if(eBlocked) eBlocked.textContent = (d.blocked_requests ?? 0).toLocaleString();
+        const eAllowed = document.getElementById('kAllowed'); if(eAllowed) eAllowed.textContent = (d.allowed_requests ?? 0).toLocaleString();
+        const eIPs = document.getElementById('kIPs'); if(eIPs) eIPs.textContent = (d.active_blocked_ips ?? 0).toLocaleString();
 
         const unread = d.unread_alerts ?? 0;
         const ab = document.getElementById('alertBadge');
         if (ab) { ab.textContent = unread; ab.style.display = unread > 0 ? 'inline' : 'none'; }
 
+        // Section KPIs
+        const elLogsTotal = document.getElementById('kLogsTotal'); if (elLogsTotal) elLogsTotal.textContent = (d.total_requests ?? 0).toLocaleString();
+        const elLogsBlocked = document.getElementById('kLogsBlocked'); if (elLogsBlocked) elLogsBlocked.textContent = (d.blocked_requests ?? 0).toLocaleString();
+        
         const types = d.attacks_by_type ?? {};
-        chartTypes.data.labels = Object.keys(types);
-        chartTypes.data.datasets[0].data = Object.values(types);
-        chartTypes.update('none');
+        const elRulesTotal = document.getElementById('kRulesTotal'); if (elRulesTotal) elRulesTotal.textContent = Object.keys(types).length.toLocaleString();
 
-        chartAction.data.datasets[0].data = [d.allowed_requests ?? 0, d.blocked_requests ?? 0];
-        chartAction.update('none');
+        const tbodyRules = document.querySelector('#rulesTable tbody');
+        if (tbodyRules) {
+          tbodyRules.innerHTML = Object.keys(types).length
+            ? Object.entries(types).map(([name, count]) => `<tr><td style="padding-left:32px; font-weight:500;">${name} <span style="margin-left:12px; font-size:0.75rem; color:var(--danger); background:rgba(239,68,68,0.1); padding:2px 6px; border-radius:4px;">${count} detecciones</span></td></tr>`).join('')
+            : '<tr><td style="padding-left:32px; color:var(--text-muted); font-style:italic;">No hay detecciones registradas aún</td></tr>';
+        }
+
+        if (chartTypes && chartAction) {
+          chartTypes.data.labels = Object.keys(types);
+          chartTypes.data.datasets[0].data = Object.values(types);
+          chartTypes.update('none');
+
+          chartAction.data.datasets[0].data = [d.allowed_requests ?? 0, d.blocked_requests ?? 0];
+          chartAction.update('none');
+        }
       } catch (e) { console.warn('Stats error', e); }
     }
 
