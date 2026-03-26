@@ -14,7 +14,7 @@ from fastapi.responses import RedirectResponse
 import uvicorn
 
 from db.connection import init_db
-from api.routes import logs, stats, blocked_ips, alerts
+from api.routes import logs, stats, blocked_ips, alerts, validate
 from config import API_PORT, is_waf_enabled, set_waf_enabled
 from pydantic import BaseModel
 from fastapi import Request
@@ -39,7 +39,7 @@ app.add_middleware(
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
-    if path.startswith("/api/") and not path.startswith("/api/auth/"):
+    if path.startswith("/api/") and not path.startswith("/api/auth/") and not path.startswith("/api/validate"):
         token = request.headers.get("Authorization")
         if not token or token != "Bearer sentinel-auth-token-12345":
             return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
@@ -56,6 +56,7 @@ app.include_router(logs.router,       prefix="/api")
 app.include_router(stats.router,      prefix="/api")
 app.include_router(blocked_ips.router, prefix="/api")
 app.include_router(alerts.router,     prefix="/api")
+app.include_router(validate.router,   prefix="/api")
 
 @app.post("/api/auth/login")
 def login(creds: LoginRequest):
