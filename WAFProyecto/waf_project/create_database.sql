@@ -155,7 +155,7 @@ create procedure sp_procesar_peticion(
   in in_metodo     varchar(10),
   in in_endpoint   varchar(255),
   in in_user_agent varchar(255),
-  in in_score      int,
+  in in_score      int, 
   in in_id_ataque  int
 )
 begin
@@ -210,7 +210,7 @@ delimiter //
 create procedure sp_reporte_amenazas(
   in in_fecha_inicio datetime,
   in in_fecha_fin    datetime
-)
+) 
 begin
   select
     ta.nombre         as tipo_ataque,
@@ -259,28 +259,36 @@ delimiter ;
 /*  SEGURIDAD Y ROLES – CREACION DE USUARIOS                   */
 /* ============================================================ */
 
-/* usuario dba_admin: todos los privilegios */
-drop user if exists 'dba_admin'@'localhost';
-create user 'dba_admin'@'localhost' identified by 'Admin123';
-grant all privileges on sentinel_waf.* to 'dba_admin'@'localhost';
+-- borrar viejos
+DROP USER IF EXISTS 'dba_admin'@'localhost';
+DROP USER IF EXISTS 'admin_waf'@'localhost';
+DROP USER IF EXISTS 'operador_waf'@'localhost';
+DROP USER IF EXISTS 'auditor_siem'@'localhost';
+DROP USER IF EXISTS 'guardian_bloqueos'@'localhost';
 
-/* usuario operador_waf: select, insert, update en tablas operativas */
-drop user if exists 'operador_waf'@'localhost';
-create user 'operador_waf'@'localhost' identified by 'Operador123';
-grant select, insert, update on sentinel_waf.peticiones_log  to 'operador_waf'@'localhost';
-grant select, insert, update on sentinel_waf.alertas          to 'operador_waf'@'localhost';
-grant select, insert, update on sentinel_waf.ips_bloqueadas   to 'operador_waf'@'localhost';
+/* usuario admin (DBA): todos los privilegios (estructura + datos) */
+DROP USER IF EXISTS 'admin'@'localhost';
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin123';
+GRANT ALL PRIVILEGES ON sentinel_waf.* TO 'admin'@'localhost';
 
-/* usuario auditor_siem: solo lectura en todas las tablas y execute en sp_reporte_amenazas */
-drop user if exists 'auditor_siem'@'localhost';
-create user 'auditor_siem'@'localhost' identified by 'Auditor123';
-grant execute on procedure sentinel_waf.sp_reporte_amenazas to 'auditor_siem'@'localhost';
+/* usuario operador: lectura/escritura en tablas operativas (sin DDL) */
+DROP USER IF EXISTS 'operador'@'localhost';
+CREATE USER 'operador'@'localhost' IDENTIFIED BY 'operador123';
+GRANT SELECT, INSERT, UPDATE ON sentinel_waf.peticiones_log TO 'operador'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON sentinel_waf.alertas        TO 'operador'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON sentinel_waf.ips_bloqueadas TO 'operador'@'localhost';
 
-/* usuario guardian_bloq: solo gestiona bloqueos, sin acceso a logs o alertas.*/
-drop user if exists 'guardian_bloqueos'@'localhost';
-create user 'guardian_bloqueos'@'localhost' identified by 'Guard123';
+/* usuario auditor: solo EXECUTE en sp_reporte_amenazas (sin acceso directo a tablas) */
+DROP USER IF EXISTS 'auditor'@'localhost';
+CREATE USER 'auditor'@'localhost' IDENTIFIED BY 'auditor123';
+GRANT EXECUTE ON PROCEDURE sentinel_waf.sp_reporte_amenazas TO 'auditor'@'localhost';
 
-grant select, insert, update on sentinel_waf.ips_bloqueadas to 'guardian_bloqueos'@'localhost';
+/* usuario guardianBloqueos: solo gestiona bloqueos (ips_bloqueadas), sin acceso a logs/alertas */
+DROP USER IF EXISTS 'guardianBloqueos'@'localhost';
+CREATE USER 'guardianBloqueos'@'localhost' IDENTIFIED BY 'guardianBloqueos123';
+GRANT SELECT, INSERT, UPDATE ON sentinel_waf.ips_bloqueadas TO 'guardianBloqueos'@'localhost';
+
+FLUSH PRIVILEGES;
 
 /* ============================================================ */
 /*  DML – DATOS DE PRUEBA                                      */
@@ -295,9 +303,8 @@ insert into tipos_ataque (nombre, descripcion, nivel_riesgo_base) values
 /*  fin del script sentinel_waf                                 */
 /* ============================================================ */
 
-use sentinel_waf;
 select * from clientes;
-
+-- SELECT User, Host FROM mysql.user;
 
 
 
